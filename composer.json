@@ -1,0 +1,23 @@
+{
+	"name" : "azhai/CodeRefactor",
+	"description" : "Toolset for generating PHP code",
+	"type" : "library",
+	"license" : "MIT",
+	"authors" : [{
+			"name" : "Ryan Liu",
+			"homepage" : "http://azhai.github.io/"
+		}
+	],
+	"keywords" : [
+		"code generation"
+	],
+	"autoload" : {
+		"psr-4" : {
+			"CodeRefactor\\" : "src/"
+		}
+	},
+	"require" : {
+		"php" : ">=5.5",
+		"nikic/php-parser" : "^3"
+	}
+}

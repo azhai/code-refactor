@@ -1,12 +1,10 @@
 <?php
 namespace CodeRefactor;
-require_once dirname(__DIR__) . '/helpers.php';
 
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RegexIterator;
 use PhpParser\ParserFactory;
-use PhpParser\PrettyPrinter;
 use PhpParser\Error;
 
 
@@ -26,8 +24,9 @@ class Refactor
     public function __construct(array $options = [])
     {
         if ($options) {
-            $this->options = array_merge($this->options, $options);
+            $this->options = $options + $this->options;
         }
+        $this->_files = [];
     }
     
     public function getParser()
@@ -44,7 +43,7 @@ class Refactor
     public function getPrinter()
     {
         if (empty($this->_printer)) {
-            $this->_printer = new PrettyPrinter\Standard($this->options);
+            $this->_printer = new Printer($this->options);
         }
         return $this->_printer;
     }
@@ -60,7 +59,7 @@ class Refactor
                 $code = file_get_contents($file);
                 $stmts = $parser->parse($code);
                 $path = $file->getPathname();
-                $this->_files[$path] = new FileCode($path, $stmts);
+                $this->_files[$path] = new CodeFile($path, $stmts);
             } catch (Error $e) {
                 echo 'Parse Error: ', $e->getMessage();
             }
@@ -75,7 +74,7 @@ class Refactor
         }
         $printer = $this->getPrinter();
         $code = $this->_files[$infile];
-        $content = $printer->prettyPrintFile($code->stmts);
+        $content = $printer->prettyPrintCode($code, true);
         if (empty($outfile)) {
             $outfile = realpath($infile);
         }

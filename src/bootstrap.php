@@ -1,4 +1,5 @@
 <?php
+define('__CODE_REFACTOR_PATH', __DIR__ . '/CodeRefactor/');
 
 /**
  * 开始的字符串相同.
@@ -151,3 +152,70 @@ function exec_method_array($clsobj, $method, array $args = [])
         }
     }
 }
+
+
+/**
+ * 自动加载Class/Interface/Trait.
+ */
+class ClassLoader
+{
+    protected static $instance = null;
+    protected static $ns_prefixes = [
+        'CodeRefactor' => __CODE_REFACTOR_PATH,
+    ];
+    
+    public static function register($prefix, $path)
+    {
+        if (! self::$instance) {
+            self::$instance = new self();
+            spl_autoload_register([self::$instance, 'autoload']);
+        }
+        $prefix = trim($prefix, '\\');
+        $path = rtrim($path, '\\/ ') . '/';
+        self::$ns_prefixes[$prefix] = $path;
+    }
+    
+    /**
+     * 自动加载.
+     *
+     * @param string $class 类名
+     */
+    public function autoload($class)
+    {
+        $class = ltrim(rtrim($class, '\\'), '\\_');
+        $first = strstr($class, '\\', true);
+        if (!isset(self::$ns_prefixes[$first])) { // 在已知类中查找
+            return false;
+        }
+        $name = substr($class, strlen($first) + 1);
+        $path = str_replace('\\', DIRECTORY_SEPARATOR, $name);
+        $fullpath = self::$ns_prefixes[$first] . $path . '.php';
+        if (self::require_file($fullpath)) {
+            $autoload = false;
+            return class_exists($class, $autoload)
+                || interface_exists($class, $autoload)
+                || trait_exists($class, $autoload);
+        }
+    }
+    
+    /**
+     * 如果文件存在，加载文件中的代码.
+     *
+     * @param string $file 文件路径
+     * @param bool   $once 使用require+once还是require指令
+     * @return bool 如果文件存在返回true，否则返回false
+     */
+    public static function require_file($file, $once = false)
+    {
+        if (empty($file) || !file_exists($file)) {
+            return false;
+        }
+        if ($once) {
+            require_once $file;
+        } else {
+            require $file;
+        }
+        return true;
+    }
+}
+

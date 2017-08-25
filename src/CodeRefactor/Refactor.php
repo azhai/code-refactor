@@ -59,7 +59,7 @@ class Refactor
                 $code = file_get_contents($file);
                 $stmts = $parser->parse($code);
                 $path = $file->getPathname();
-                $this->_files[$path] = new CodeFile($path, $stmts);
+                $this->_files[$path] = new CodeFile($stmts, $path);
             } catch (Error $e) {
                 echo 'Parse Error: ', $e->getMessage();
             }

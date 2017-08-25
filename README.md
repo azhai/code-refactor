@@ -1,10 +1,11 @@
-#CodeRefactor
+# CodeRefactor
 
 基于PHP-Parser的代码重构工具，只在PHP-Parser v3.1.0 (要求php v5.5+)下测试
 
 ## 基本用法
 
 ```php
+<?php
 error_reporting(E_ALL);
 defined('VENDOR_DIR') or define('VENDOR_DIR', dirname(__DIR__) . '/vendor');
 require_once VENDOR_DIR . '/azhai/coderefactor/src/bootstrap.php';

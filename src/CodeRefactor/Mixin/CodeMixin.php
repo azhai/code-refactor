@@ -1,9 +1,11 @@
 <?php
-namespace CodeRefactor;
+namespace CodeRefactor\Mixin;
 
 
 trait CodeMixin
 {
+    use \CodeRefactor\Mixin\BaseMixin;
+    
     protected $node = null;
     protected $is_duplicated = false;
     
@@ -32,15 +34,6 @@ trait CodeMixin
     }
     
     /**
-     * Returns the class name.
-     */
-    public function getType()
-    {
-        $class_name = get_class($this);
-        return ltrim(strrchr($class_name, '\\'), '\\');
-    }
-    
-    /**
      * Returns the built node.
      */
     public function getNode()
@@ -48,22 +41,9 @@ trait CodeMixin
         return $this->node;
     }
     
-    public function getDocComment()
-    {
-        return $this->getNode()->getDocComment();
-    }
-    
     public function &getAttribute($key, $default = null)
     {
         return $this->getNode()->getAttribute($key, $default);
-    }
-    
-    /**
-     * Returns the all stmts.
-     */
-    public function getStmts()
-    {
-        return $this->stmts;
     }
     
     /**
@@ -88,21 +68,13 @@ trait CodeMixin
         return $this;
     }
     
-    public function dupDocComment()
+    public function getDocComment($all = false)
     {
         $node = $this->getNode();
-        if ($node && $doc_comment = $node->getDocComment()) {
-            $this->setDocComment($doc_comment);
-        }
-    }
-    
-    public function dupAllDocComment()
-    {
-        $node = $this->getNode();
-        if ($node && $comments = $node->getAttribute('comments', [])) {
-            foreach ($comments as $comment) {
-                $this->addComment($comment);
-            }
+        if ($all) {
+            return $node ? $node->getAttribute('comments', []) : [];
+        } else {
+            return $node ? $node->getDocComment() : null;
         }
     }
     

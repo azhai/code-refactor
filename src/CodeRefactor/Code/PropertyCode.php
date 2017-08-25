@@ -7,7 +7,7 @@ use PhpParser\Node\Stmt;
 
 class PropertyCode extends Builder\Property
 {
-    use \CodeRefactor\CodeMixin;
+    use \CodeRefactor\Mixin\CodeMixin;
     
     protected $stmts = [];
     

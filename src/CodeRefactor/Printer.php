@@ -101,7 +101,7 @@ class Printer extends PrettyPrinter\Standard
             $stmts = $code->stmts;
         }
         $result = $this->prettyPrint($stmts);
-        if ($code instanceof CodeFile) {
+        if ($code instanceof CodeBlock) {
             if ($doc = $code->getDocComment()) {
                 $result = $this->pComments([$doc]) . "\n\n" . $result;
             }

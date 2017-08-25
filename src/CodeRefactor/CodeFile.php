@@ -1,51 +1,29 @@
 <?php
+
 namespace CodeRefactor;
 
 use PhpParser\Builder;
 use PhpParser\Node\Stmt;
-use PhpParser\Comment;
 
 
-class CodeFile
+class CodeFile extends CodeBlock
 {
-    protected $offset = 0;
-    
     public $filename = '';
-    public $comments = [];
-    protected $stmts = [];
     protected $namespaces = [];
     protected $classes = [];
     protected $functions = [];
     
-    public function __construct($filename, array $stmts = [])
+    public function __construct(array $stmts = [], $filename = '')
     {
         $this->filename = $filename;
-        $this->offset = 0;
-        foreach ($stmts as $stmt) {
-            $this->addStmt($stmt);
-        }
-    }
-    
-    public static function getStmtNode($node)
-    {
-        if (method_exists($node, 'getNode')) {
-            $node = $node->getNode();
-        }
-        return $node;
-    }
-    
-    /**
-     * Returns the all stmts.
-     */
-    public function getStmts()
-    {
-        return array_filter($this->stmts);
+        parent::__construct($stmts);
     }
     
     /**
      * Adds a statement.
      */
-    public function addStmt($stmt) {
+    public function addStmt($stmt)
+    {
         if (method_exists($stmt, 'isMixinCode')) {
             $name = $stmt->getName();
         } else {
@@ -71,28 +49,16 @@ class CodeFile
                 $this->functions[$name] = $this->offset;
                 break;
         }
-        $this->stmts[$this->offset ++] = $stmt;
+        $this->stmts[$this->offset++] = $stmt;
         return $this;
     }
     
-    public function addComment($text)
+    public static function getStmtNode($node)
     {
-        if ($this->comments) {
-            $this->comments[] = "\n";
+        if (method_exists($node, 'getNode')) {
+            $node = $node->getNode();
         }
-        $lines = explode("\n", $text);
-        foreach ($lines as $line) {
-            $this->comments[] = rtrim($line);
-        }
-        return $this;
-    }
-    
-    public function getDocComment()
-    {
-        if ($this->comments) {
-            $text = implode("\n * ", $this->comments);
-            return new Comment\Doc(sprintf("/**\n * %s\n */", $text));
-        }
+        return $node;
     }
     
     public function removeCode($name, $type = 'classes')
@@ -107,6 +73,16 @@ class CodeFile
         return $this;
     }
     
+    public function getClass($name = false)
+    {
+        if (empty($name)) {
+            return $this->getCodes('classes');
+        } elseif (isset($this->classes[$name])) {
+            $offset = $this->classes[$name];
+            return $this->stmts[$offset];
+        }
+    }
+    
     public function getCodes($type = 'classes')
     {
         $result = [];
@@ -118,16 +94,6 @@ class CodeFile
             }
         }
         return $result;
-    }
-    
-    public function getClass($name = false)
-    {
-        if (empty($name)) {
-            return $this->getCodes('classes');
-        } elseif (isset($this->classes[$name])) {
-            $offset = $this->classes[$name];
-            return $this->stmts[$offset];
-        }
     }
     
     public function setClass($name, $node = null)

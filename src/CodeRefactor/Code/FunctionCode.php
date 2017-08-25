@@ -7,7 +7,7 @@ use PhpParser\Node\FunctionLike;
 
 class FunctionCode extends Builder\Function_
 {
-    use \CodeRefactor\CodeMixin;
+    use \CodeRefactor\Mixin\CodeMixin;
     
     public function __construct(FunctionLike $node)
     {

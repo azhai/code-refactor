@@ -8,7 +8,7 @@ use PhpParser\Node\Const_;
 
 class ClassCode extends Builder\Class_
 {
-    use \CodeRefactor\CodeMixin;
+    use \CodeRefactor\Mixin\CodeMixin;
     
     protected $stmts = [];
     
@@ -64,7 +64,7 @@ class ClassCode extends Builder\Class_
      */
     protected function _duplicate()
     {
-        $this->dupAllDocComment();
+        $this->dupAllDocComments();
         if ($this->node instanceof Stmt\Class_) {
             $this->setModifier($this->node->flags);
             if ($this->node->extends) {

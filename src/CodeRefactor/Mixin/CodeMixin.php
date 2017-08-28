@@ -7,6 +7,8 @@
 
 namespace CodeRefactor\Mixin;
 
+use PhpParser\Comment;
+
 
 trait CodeMixin
 {
@@ -90,6 +92,11 @@ trait CodeMixin
     {
         if (!isset($this->attributes['comments'])) {
             $this->attributes['comments'] = [];
+        }
+        if (($comment instanceof Comment) && !($comment instanceof Comment\Doc)) {
+            $line = $comment->getLine();
+            $file_pos = $comment->getFilePos();
+            $comment = new Comment\Doc($comment->getText(), $line, $file_pos);
         }
         $this->attributes['comments'][] = $this->normalizeDocComment($comment);
         return $this;

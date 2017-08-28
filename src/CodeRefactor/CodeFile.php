@@ -60,7 +60,7 @@ class CodeFile extends CodeBlock
             $name = strval($stmt->getName());
         } else {
             $stmt = self::getStmtNode($stmt);
-            $name = strval($stmt->name);
+            $name = isset($stmt->name) ? strval($stmt->name) : null;
         }
         $type = $stmt->getType();
         switch ($type) {

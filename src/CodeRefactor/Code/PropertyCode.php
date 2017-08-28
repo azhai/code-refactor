@@ -36,6 +36,20 @@ class PropertyCode extends Builder\Property
         }
     }
     
+    public function getDefault()
+    {
+        if ($node = $this->getNode()) {
+            return $node->props[0]->default;
+        }
+    }
+    
+    public function getDefaultValue()
+    {
+        if ($default = $this->getDefault()) {
+            return $default->value;
+        }
+    }
+    
     /**
      * Duplicate node attributes to this
      */

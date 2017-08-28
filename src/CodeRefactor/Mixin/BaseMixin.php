@@ -52,7 +52,7 @@ trait BaseMixin
         $components = to_array($this->{$type}, false);
         $result = [];
         foreach ($components as $name => $node) {
-            if (empty($filter) && preg_match($filter, $name)) {
+            if (empty($filter) || preg_match($filter, $name)) {
                 if (!empty($callback)) {
                     $node = exec_function_array($callback, [$node, $this]);
                 }

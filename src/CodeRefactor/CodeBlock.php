@@ -1,17 +1,23 @@
 <?php
+/**
+ * CodeRefactor
+ * @author        Ryan Liu <http://azhai.oschina.io>
+ * @copyright (c) 2017 MIT License
+ */
 
 namespace CodeRefactor;
 
 use PhpParser\Comment;
-
 
 class CodeBlock
 {
     use \CodeRefactor\Mixin\BaseMixin;
     
     public $comments = [];
+    
+    public $stmts = [];
+    
     protected $offset = 0;
-    protected $stmts = [];
     
     public function __construct(array $stmts = [])
     {
@@ -30,11 +36,34 @@ class CodeBlock
         return $this;
     }
     
+    public static function getStmtNode($node)
+    {
+        if (method_exists($node, 'getNode')) {
+            $node = $node->getNode();
+        }
+        return $node;
+    }
+    
+    public function findCode($type, $filter = false)
+    {
+        $callback = create_function('$n,$c', 'return $c->stmts[$n];');
+        return $this->find($type, $filter, $callback);
+    }
+    
+    public function removeCode($type, $filter = false)
+    {
+        $callback = create_function('$n,$c', 'return $c->stmts[$n] = null;');
+        return $this->find($type, $filter, $callback);
+    }
+    
     public function getDocComment($all = false)
     {
         if ($this->comments) {
             $text = implode("\n * ", $this->comments);
-            return new Comment\Doc(sprintf("/**\n * %s\n */", $text));
+            $comment = new Comment\Doc(sprintf("/**\n * %s\n */", $text));
+            return $all ? [$comment] : $comment;
+        } else {
+            return $all ? [] : null;
         }
     }
     

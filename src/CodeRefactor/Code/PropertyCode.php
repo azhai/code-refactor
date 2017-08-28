@@ -1,9 +1,13 @@
 <?php
+/**
+ * CodeRefactor
+ * @author        Ryan Liu <http://azhai.oschina.io>
+ * @copyright (c) 2017 MIT License
+ */
+
 namespace CodeRefactor\Code;
 
-use PhpParser\Builder;
 use PhpParser\Node\Stmt;
-
 
 class PropertyCode extends Builder\Property
 {
@@ -11,11 +15,24 @@ class PropertyCode extends Builder\Property
     
     protected $stmts = [];
     
-    public function __construct(Stmt\Property $node)
+    public function __construct(Stmt\Property $node, $name = '')
     {
         $this->node = $node;
-        $name = $node->props[0]->name;
+        if (empty($name)) {
+            $name = $node->props[0]->name;
+        }
         parent::__construct($name);
+    }
+    
+    /**
+     * Set the node name.
+     */
+    public function setName($name)
+    {
+        $this->name = $name;
+        if ($this->node) {
+            $this->node->props[0]->name = $name;
+        }
     }
     
     /**
@@ -28,16 +45,5 @@ class PropertyCode extends Builder\Property
         $default = $this->node->props[0]->default;
         $this->setDefault($default);
         $this->addStmts($this->node->stmts);
-    }
-    
-    /**
-     * Set the node name.
-     */
-    public function setName($name)
-    {
-        $this->name = $name;
-        if ($this->node) {
-            $this->node->props[0]->name = $name;
-        }
     }
 }

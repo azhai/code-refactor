@@ -1,16 +1,23 @@
 <?php
+/**
+ * CodeRefactor
+ * @author        Ryan Liu <http://azhai.oschina.io>
+ * @copyright (c) 2017 MIT License
+ */
 
 namespace CodeRefactor;
 
-use PhpParser\Builder;
 use PhpParser\Node\Stmt;
-
 
 class CodeFile extends CodeBlock
 {
+    
     public $filename = '';
+    
     protected $namespaces = [];
+    
     protected $classes = [];
+    
     protected $functions = [];
     
     public function __construct(array $stmts = [], $filename = '')
@@ -19,16 +26,40 @@ class CodeFile extends CodeBlock
         parent::__construct($stmts);
     }
     
+    public function getClass($name = false)
+    {
+        if (empty($name)) {
+            return $this->findCode('classes');
+        } elseif (isset($this->classes[$name])) {
+            $offset = $this->classes[$name];
+            return $this->stmts[$offset];
+        }
+    }
+    
+    public function setClass($name, $node = null)
+    {
+        if ($node instanceof ClassCode) {
+            $node = new ClassCode($node->getNode(), $name);
+        } elseif ($node instanceof Stmt\ClassLike) {
+            $node = new ClassCode($node, $name);
+        } else {
+            $stmt = new Builder\Class_($name);
+            $node = new ClassCode($stmt->getNode());
+        }
+        $this->addStmt($node);
+        return $this;
+    }
+    
     /**
      * Adds a statement.
      */
     public function addStmt($stmt)
     {
         if (method_exists($stmt, 'isMixinCode')) {
-            $name = $stmt->getName();
+            $name = strval($stmt->getName());
         } else {
             $stmt = self::getStmtNode($stmt);
-            $name = $stmt->name;
+            $name = strval($stmt->name);
         }
         $type = $stmt->getType();
         switch ($type) {
@@ -53,68 +84,10 @@ class CodeFile extends CodeBlock
         return $this;
     }
     
-    public static function getStmtNode($node)
-    {
-        if (method_exists($node, 'getNode')) {
-            $node = $node->getNode();
-        }
-        return $node;
-    }
-    
-    public function removeCode($name, $type = 'classes')
-    {
-        if (isset($this->$type) && is_array($this->$type)) {
-            $components = $this->$type;
-            if (isset($components[$name])) {
-                $offset = $components[$name];
-                $this->stmts[$offset] = null;
-            }
-        }
-        return $this;
-    }
-    
-    public function getClass($name = false)
-    {
-        if (empty($name)) {
-            return $this->getCodes('classes');
-        } elseif (isset($this->classes[$name])) {
-            $offset = $this->classes[$name];
-            return $this->stmts[$offset];
-        }
-    }
-    
-    public function getCodes($type = 'classes')
-    {
-        $result = [];
-        if (isset($this->$type) && is_array($this->$type)) {
-            $components = $this->$type;
-            foreach ($components as $name => $offset) {
-                $offset = $components[$name];
-                $result[$name] = $this->stmts[$offset];
-            }
-        }
-        return $result;
-    }
-    
-    public function setClass($name, $node = null)
-    {
-        if ($node instanceof ClassCode) {
-            $node->setName($name);
-        } elseif ($node instanceof Stmt\ClassLike) {
-            $node->name = $name;
-            $node = new ClassCode($node);
-        } else {
-            $stmt = new Builder\Class_($name);
-            $node = new ClassCode($stmt->getNode());
-        }
-        $this->addStmt($node);
-        return $this;
-    }
-    
     public function getFunction($name = false)
     {
         if (empty($name)) {
-            return $this->getCodes('functions');
+            return $this->findCode('functions');
         }
         $name = strtolower($name);
         if (isset($this->functions[$name])) {
@@ -126,10 +99,9 @@ class CodeFile extends CodeBlock
     public function setFunction($name, $node = null)
     {
         if ($node instanceof FunctionCode) {
-            $node->setName($name);
+            $node = new FunctionCode($node->getNode(), $name);
         } elseif ($node instanceof Stmt\Function_) {
-            $node->name = $name;
-            $node = new FunctionCode($node);
+            $node = new FunctionCode($node, $name);
         } else {
             $stmt = new Builder\Function_($name);
             $node = new FunctionCode($stmt->getNode());

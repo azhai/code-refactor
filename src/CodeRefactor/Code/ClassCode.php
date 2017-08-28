@@ -1,10 +1,14 @@
 <?php
+/**
+ * CodeRefactor
+ * @author        Ryan Liu <http://azhai.oschina.io>
+ * @copyright (c) 2017 MIT License
+ */
+
 namespace CodeRefactor\Code;
 
-use PhpParser\Builder;
-use PhpParser\Node\Stmt;
 use PhpParser\Node\Const_;
-
+use PhpParser\Node\Stmt;
 
 class ClassCode extends Builder\Class_
 {
@@ -12,10 +16,53 @@ class ClassCode extends Builder\Class_
     
     protected $stmts = [];
     
-    public function __construct(Stmt\ClassLike $node)
+    public function __construct(Stmt\ClassLike $node, $name = '')
     {
         $this->node = $node;
-        parent::__construct($node->name);
+        if (empty($name)) {
+            $name = $node->name;
+        }
+        parent::__construct($name);
+    }
+    
+    public function removeCode($name, $type = 'properties')
+    {
+        if (isset($this->{$type}) && is_array($this->{$type})) {
+            $this->duplicate();
+            $components =& $this->{$type};
+            if (isset($components[$name])) {
+                unset($components[$name]);
+                $this->node = parent::getNode();
+            }
+        }
+        return $this;
+    }
+    
+    public function getConst($name = false)
+    {
+        if (empty($name)) {
+            return $this->constants;
+        } elseif (isset($this->constants[$name])) {
+            return $this->constants[$name];
+        }
+    }
+    
+    public function setConst($name, $node)
+    {
+        $this->duplicate();
+        if ($node instanceof Stmt\ClassConst) {
+            $node->consts[0]->name = $name;
+        } elseif ($node instanceof Const_) {
+            $node->name = $name;
+            $node = new Stmt\ClassConst([$node]);
+        } else {
+            $expr = $this->normalizeValue($node);
+            $node = new Const_($name, $expr);
+            $node = new Stmt\ClassConst([$node]);
+        }
+        $this->addStmt($node);
+        $this->node = parent::getNode();
+        return $this;
     }
     
     /**
@@ -59,62 +106,6 @@ class ClassCode extends Builder\Class_
         return $this;
     }
     
-    /**
-     * Duplicate node attributes to this
-     */
-    protected function _duplicate()
-    {
-        $this->dupAllDocComments();
-        if ($this->node instanceof Stmt\Class_) {
-            $this->setModifier($this->node->flags);
-            if ($this->node->extends) {
-                $this->extend($this->node->extends);
-            }
-            exec_method_array($this, 'implement', $this->node->implements);
-        }
-        $this->addStmts($this->node->stmts);
-    }
-    
-    public function removeCode($name, $type = 'properties')
-    {
-        if (isset($this->$type) && is_array($this->$type)) {
-            $this->duplicate();
-            $components = & $this->$type;
-            if (isset($components[$name])) {
-                unset($components[$name]);
-                $this->node = parent::getNode();
-            }
-        }
-        return $this;
-    }
-    
-    public function getConst($name = false)
-    {
-        if (empty($name)) {
-            return $this->constants;
-        } elseif (isset($this->constants[$name])) {
-            return $this->constants[$name];
-        }
-    }
-    
-    public function setConst($name, $node)
-    {
-        $this->duplicate();
-        if ($node instanceof Stmt\ClassConst) {
-            $node->consts[0]->name = $name;
-        } elseif ($node instanceof Const_) {
-            $node->name = $name;
-            $node = new Stmt\ClassConst([$node]);
-        } else {
-            $expr = $this->normalizeValue($node);
-            $node = new Const_($name, $expr);
-            $node = new Stmt\ClassConst([$node]);
-        }
-        $this->addStmt($node);
-        $this->node = parent::getNode();
-        return $this;
-    }
-    
     public function getProperty($name = false)
     {
         $this->duplicate();
@@ -129,10 +120,9 @@ class ClassCode extends Builder\Class_
     {
         $this->duplicate();
         if ($node instanceof PropertyCode) {
-            $node->setName($name);
+            $node = new PropertyCode($node->getNode(), $name);
         } elseif ($node instanceof Stmt\Property) {
-            $node->name = $name;
-            $node = new PropertyCode($node);
+            $node = new PropertyCode($node, $name);
         } else {
             $stmt = new Builder\Property($name);
             if (is_scalar($node) || is_array($node)) {
@@ -161,10 +151,9 @@ class ClassCode extends Builder\Class_
     {
         $this->duplicate();
         if ($node instanceof MethodCode) {
-            $node->setName($name);
+            $node = new MethodCode($node->getNode(), $name);
         } elseif ($node instanceof Stmt\ClassMethod) {
-            $node->name = $name;
-            $node = new MethodCode($node);
+            $node = new MethodCode($node, $name);
         } else {
             $stmt = new Builder\Method($name);
             $node = new MethodCode($stmt->getNode());
@@ -172,5 +161,21 @@ class ClassCode extends Builder\Class_
         $this->addStmt($node);
         $this->node = parent::getNode();
         return $this;
+    }
+    
+    /**
+     * Duplicate node attributes to this
+     */
+    protected function _duplicate()
+    {
+        $this->dupAllDocComments();
+        if ($this->node instanceof Stmt\Class_) {
+            $this->setModifier($this->node->flags);
+            if ($this->node->extends) {
+                $this->extend($this->node->extends);
+            }
+            exec_method_array($this, 'implement', $this->node->implements);
+        }
+        $this->addStmts($this->node->stmts);
     }
 }

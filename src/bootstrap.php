@@ -1,4 +1,10 @@
 <?php
+/**
+ * CodeRefactor
+ * @author        Ryan Liu <http://azhai.oschina.io>
+ * @copyright (c) 2017 MIT License
+ */
+
 define('__CODE_REFACTOR_PATH', __DIR__ . '/CodeRefactor/');
 
 /**
@@ -13,7 +19,6 @@ function starts_with($haystack, $needle)
     return strncmp($haystack, $needle, strlen($needle)) === 0;
 }
 
-
 /**
  * 结束的字符串相同.
  *
@@ -24,10 +29,8 @@ function starts_with($haystack, $needle)
 function ends_with($haystack, $needle)
 {
     $ndlen = strlen($needle);
-    return $ndlen === 0 || (strlen($haystack) >= $ndlen &&
-            substr_compare($haystack, $needle, -$ndlen) === 0);
+    return $ndlen === 0 || strlen($haystack) >= $ndlen && substr_compare($haystack, $needle, -$ndlen) === 0;
 }
-
 
 /**
  * 将内容字符串中的变量替换掉.
@@ -55,24 +58,23 @@ function replace_with($content, array $context = [], $prefix = '', $subfix = '')
     return $content;
 }
 
-
 /**
  * 主要用于将对象公开属性转为关联数组
  *
- * @param mixed $value 对象或其他值
+ * @param mixed $value      对象或其他值
+ * @param bool  $read_props 读取对象公开属性为数组
  * @return array
  */
-function to_array($value)
+function to_array($value, $read_props = false)
 {
-    if (is_object($value)) {
-        return get_object_vars($value);
-    } elseif (is_array($value)) {
+    if (is_array($value)) {
         return $value;
+    } elseif (is_object($value) && $read_props) {
+        return get_object_vars($value);
     } else {
-        return (array)$value;
+        return is_null($value) ? [] : [$value];
     }
 }
-
 
 /**
  * 调用函数/闭包/可invoke的对象
@@ -111,7 +113,6 @@ function exec_function_array($func, array $args = [])
             }
     }
 }
-
 
 /**
  * 调用类/对象方法.
@@ -153,20 +154,19 @@ function exec_method_array($clsobj, $method, array $args = [])
     }
 }
 
-
 /**
  * 自动加载Class/Interface/Trait.
  */
 class ClassLoader
 {
+    
     protected static $instance = null;
-    protected static $ns_prefixes = [
-        'CodeRefactor' => __CODE_REFACTOR_PATH,
-    ];
+    
+    protected static $ns_prefixes = ['CodeRefactor' => __CODE_REFACTOR_PATH];
     
     public static function register($prefix, $path)
     {
-        if (! self::$instance) {
+        if (!self::$instance) {
             self::$instance = new self();
             spl_autoload_register([self::$instance, 'autoload']);
         }
@@ -184,7 +184,8 @@ class ClassLoader
     {
         $class = ltrim(rtrim($class, '\\'), '\\_');
         $first = strstr($class, '\\', true);
-        if (!isset(self::$ns_prefixes[$first])) { // 在已知类中查找
+        if (!isset(self::$ns_prefixes[$first])) {
+            // 在已知类中查找
             return false;
         }
         $name = substr($class, strlen($first) + 1);
@@ -192,9 +193,7 @@ class ClassLoader
         $fullpath = self::$ns_prefixes[$first] . $path . '.php';
         if (self::require_file($fullpath)) {
             $autoload = false;
-            return class_exists($class, $autoload)
-                || interface_exists($class, $autoload)
-                || trait_exists($class, $autoload);
+            return class_exists($class, $autoload) || interface_exists($class, $autoload) || trait_exists($class, $autoload);
         }
     }
     
@@ -218,4 +217,3 @@ class ClassLoader
         return true;
     }
 }
-

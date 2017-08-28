@@ -1,9 +1,16 @@
 <?php
+/**
+ * CodeRefactor
+ * @author        Ryan Liu <http://azhai.oschina.io>
+ * @copyright (c) 2017 MIT License
+ */
+
 namespace CodeRefactor\Mixin;
 
 
 trait BaseMixin
 {
+    
     /**
      * Returns the class name.
      */
@@ -35,5 +42,23 @@ trait BaseMixin
                 $this->addComment($doc_comment);
             }
         }
+    }
+    
+    public function find($type, $filter = false, $callback = null)
+    {
+        if (!isset($this->{$type})) {
+            return [];
+        }
+        $components = to_array($this->{$type}, false);
+        $result = [];
+        foreach ($components as $name => $node) {
+            if (empty($filter) && preg_match($filter, $name)) {
+                if (!empty($callback)) {
+                    $node = exec_function_array($callback, [$node, $this]);
+                }
+                $result[$name] = $node;
+            }
+        }
+        return $result;
     }
 }

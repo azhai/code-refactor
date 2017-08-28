@@ -1,4 +1,10 @@
 <?php
+/**
+ * CodeRefactor
+ * @author        Ryan Liu <http://azhai.oschina.io>
+ * @copyright (c) 2017 MIT License
+ */
+
 namespace CodeRefactor\Mixin;
 
 
@@ -7,6 +13,7 @@ trait CodeMixin
     use \CodeRefactor\Mixin\BaseMixin;
     
     protected $node = null;
+    
     protected $is_duplicated = false;
     
     public function isMixinCode()
@@ -33,6 +40,11 @@ trait CodeMixin
         }
     }
     
+    public function &getAttribute($key, $default = null)
+    {
+        return $this->getNode()->getAttribute($key, $default);
+    }
+    
     /**
      * Returns the built node.
      */
@@ -41,15 +53,11 @@ trait CodeMixin
         return $this->node;
     }
     
-    public function &getAttribute($key, $default = null)
-    {
-        return $this->getNode()->getAttribute($key, $default);
-    }
-    
     /**
      * Adds a statement.
      */
-    public function addStmt($stmt) {
+    public function addStmt($stmt)
+    {
         $stmt = $this->normalizeNode($stmt);
         $this->stmts[] = $stmt;
         return $this;

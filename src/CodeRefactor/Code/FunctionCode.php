@@ -1,18 +1,25 @@
 <?php
+/**
+ * CodeRefactor
+ * @author        Ryan Liu <http://azhai.oschina.io>
+ * @copyright (c) 2017 MIT License
+ */
+
 namespace CodeRefactor\Code;
 
-use PhpParser\Builder;
 use PhpParser\Node\FunctionLike;
-
 
 class FunctionCode extends Builder\Function_
 {
     use \CodeRefactor\Mixin\CodeMixin;
     
-    public function __construct(FunctionLike $node)
+    public function __construct(FunctionLike $node, $name = '')
     {
         $this->node = $node;
-        parent::__construct($node->name);
+        if (empty($name)) {
+            $name = $node->name;
+        }
+        parent::__construct($name);
     }
     
     /**

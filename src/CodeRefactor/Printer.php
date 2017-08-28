@@ -1,14 +1,79 @@
 <?php
+/**
+ * CodeRefactor
+ * @author        Ryan Liu <http://azhai.oschina.io>
+ * @copyright (c) 2017 MIT License
+ */
+
 namespace CodeRefactor;
 
-use PhpParser\PrettyPrinter;
-use PhpParser\Comment;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Stmt;
 
-
 class Printer extends PrettyPrinter\Standard
 {
+    
+    public function prettyPrintCode($node, $add_file_tag = false)
+    {
+        $result = $this->prettyPrint(to_array($node, false));
+        if ($add_file_tag && $node instanceof CodeBlock) {
+            if ($stmts = $node->getStmts()) {
+                $first = $stmts[0];
+                $last = $stmts[count($stmts) - 1];
+            } else {
+                $first = $last = null;
+            }
+            $result = self::addPhpTag($result, $first, $last);
+        }
+        return $result;
+    }
+    
+    public static function addPhpTag($content = '', $first = null, $last = null)
+    {
+        $content = '<?php' . "\n" . $content;
+        if ($first && $first instanceof Stmt\InlineHTML) {
+            $content = preg_replace('/^<\\?php\\s+\\?>\\n?/', '', $content);
+        }
+        if ($last && $last instanceof Stmt\InlineHTML) {
+            $content = preg_replace('/<\\?php$/', '', rtrim($content));
+        }
+        return $content;
+    }
+    
+    /**
+     * Pretty prints an array of nodes (statements) and indents them optionally.
+     */
+    protected function pStmts(array $nodes, $indent = true)
+    {
+        $result = '';
+        foreach ($nodes as $node) {
+            if ($node instanceof CodeBlock) {
+                $comments = $node->getDocComment(true);
+                $content = $this->pStmts($node->getStmts(), $indent);
+            } else {
+                $node = CodeBlock::getStmtNode($node);
+                $comments = $node->getAttribute('comments', []);
+                $content = $this->p($node);
+            }
+            if ($comments) {
+                $front_of_comment = self::getFrontOfComment($node);
+                $result .= $front_of_comment . $this->pComments($comments);
+                if ($node instanceof Stmt\Nop) {
+                    continue;
+                }
+            } else {
+                $front_of_comment = '';
+            }
+            $front_of_node = self::getFrontOfNode($node, $front_of_comment);
+            $end_of_node = self::getEndOfNode($node);
+            $result .= $front_of_node . $content . $end_of_node;
+        }
+        if ($indent) {
+            $result = $this->addIndent($result);
+        }
+        return $result;
+    }
+    
     protected static function getFrontOfComment($node)
     {
         $type = $node->getType();
@@ -32,18 +97,6 @@ class Printer extends PrettyPrinter\Standard
         return $result;
     }
     
-    public static function addPhpTag($content = '', $html_first = false, $html_last = false)
-    {
-        $content = '<?php' . "\n" . $content;
-        if ($html_first) {
-            $content = preg_replace('/^<\?php\s+\?>\n?/', '', $content);
-        }
-        if ($html_last) {
-            $content = preg_replace('/<\?php$/', '', rtrim($content));
-        }
-        return $content;
-    }
-    
     protected static function getFrontOfNode($node, $front_of_comment = '')
     {
         if (empty($front_of_comment)) {
@@ -56,61 +109,12 @@ class Printer extends PrettyPrinter\Standard
     
     protected static function getEndOfNode($node)
     {
-        return ($node instanceof Expr) ? ';' : '';
+        return $node instanceof Expr ? ';' : '';
     }
     
     protected function addIndent($code_text)
     {
-        $pattern = '~\n(?!$|' . $this->noIndentToken . ')~';
+        $pattern = '~\\n(?!$|' . $this->noIndentToken . ')~';
         return preg_replace($pattern, "\n    ", $code_text);
-    }
-    
-    /**
-     * Pretty prints an array of nodes (statements) and indents them optionally.
-     */
-    protected function pStmts(array $nodes, $indent = true)
-    {
-        $result = '';
-        foreach ($nodes as $node) {
-            $node = CodeFile::getStmtNode($node);
-            $comments = $node->getAttribute('comments', array());
-            if ($comments) {
-                $front_of_comment = self::getFrontOfComment($node);
-                $result .= $front_of_comment . $this->pComments($comments);
-                if ($node instanceof Stmt\Nop) {
-                    continue;
-                }
-            } else {
-                $front_of_comment = '';
-            }
-            $front_of_node = self::getFrontOfNode($node, $front_of_comment);
-            $end_of_node = self::getEndOfNode($node);
-            $result .= $front_of_node . $this->p($node) . $end_of_node;
-        }
-        if ($indent) {
-            $result = $this->addIndent($result);
-        }
-        return $result;
-    }
-    
-    public function prettyPrintCode($code, $add_file_tag = false)
-    {
-        if (method_exists($code, 'getStmts')) {
-            $stmts = $code->getStmts();
-        } else {
-            $stmts = $code->stmts;
-        }
-        $result = $this->prettyPrint($stmts);
-        if ($code instanceof CodeBlock) {
-            if ($doc = $code->getDocComment()) {
-                $result = $this->pComments([$doc]) . "\n\n" . $result;
-            }
-        }
-        if ($add_file_tag) {
-            $html_first = $stmts[0] instanceof Stmt\InlineHTML;
-            $html_last = $stmts[count($stmts) - 1] instanceof Stmt\InlineHTML;
-            $result = self::addPhpTag($result, $html_first, $html_last);
-        }
-        return $result;
     }
 }

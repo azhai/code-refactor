@@ -7,6 +7,7 @@
 
 namespace CodeRefactor;
 
+use PhpParser\Builder;
 use PhpParser\Node\Stmt;
 
 class CodeFile extends CodeBlock

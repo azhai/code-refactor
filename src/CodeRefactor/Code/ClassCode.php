@@ -7,6 +7,7 @@
 
 namespace CodeRefactor\Code;
 
+use PhpParser\Builder;
 use PhpParser\Node\Const_;
 use PhpParser\Node\Stmt;
 

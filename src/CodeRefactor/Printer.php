@@ -7,6 +7,7 @@
 
 namespace CodeRefactor;
 
+use PhpParser\PrettyPrinter;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Stmt;
 

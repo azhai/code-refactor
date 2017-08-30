@@ -14,11 +14,11 @@ ClassLoader::register('PhpParser', VENDOR_DIR . '/nikic/php-parser/lib/PhpParser
 $ref = new CodeRefactor\Refactor(['phpVersion' => 'ONLY_PHP5']);
 $files = $ref->readFiles(__DIR__, '/\.class\.php$/');
 foreach ($files as $path => $code) {
-    $classes = $code->getClass();
-    foreach ($classes as $class) {
+    $code->find('classes', false, function ($offset, $code) {
+        $class = $code->stmts[$offset];
         $class->setConst('MONTHES_PER_YEAR', 12);
         $class->setProperty('monthes_per_year', 12);
-    }
+    });
     $ref->writeFile($path, $path . '.new');
 }
 ```

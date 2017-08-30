@@ -16,11 +16,16 @@ use RegexIterator;
 
 /**
  * 代码重构工具
+ * phpVersion: PREFER_PHP7/PREFER_PHP5/ONLY_PHP7/ONLY_PHP5
+ * shortArraySyntax: 是否使用[]代替array()表示数组，需要PHP5.4+
  */
 class Refactor
 {
     
-    public $options = ['phpVersion' => 'PREFER_PHP7', 'shortArraySyntax' => true];
+    public $options = [
+        'phpVersion' => 'PREFER_PHP7',
+        'shortArraySyntax' => false,
+    ];
     
     protected $_parser = null;
     
@@ -65,7 +70,14 @@ class Refactor
         return $this->_dumper;
     }
     
-    public function readFiles($code_dir, $pattern = '/\\.php$/')
+    /**
+     * 解析目录下的代码文件
+     *
+     * @param string $code_dir  目录
+     * @param string $pattern   文件名正则
+     * @return array 文件路径和文件代码的关联数组
+     */
+    public function readFiles($code_dir, $pattern = '/\.php$/')
     {
         $parser = $this->getParser();
         $iter = new RecursiveDirectoryIterator($code_dir);
@@ -84,6 +96,13 @@ class Refactor
         return $this->_files;
     }
     
+    /**
+     * 将解析好的代码写入文件
+     *
+     * @param string $infile  已解析的代码文件路径
+     * @param bool   $outfile 要写入的文件路径，默认覆盖原文件
+     * @return string 写入的文件路径
+     */
     public function writeFile($infile, $outfile = false)
     {
         if (!isset($this->_files[$infile])) {

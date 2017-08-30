@@ -13,7 +13,13 @@ use PhpParser\Node\Stmt;
 
 class Printer extends PrettyPrinter\Standard
 {
-    
+    /**
+     * 将代码对象输出为字符串
+     *
+     * @param      $node
+     * @param bool $add_file_tag 是否在开头添加PHP标记
+     * @return string 代码的字符串表示
+     */
     public function prettyPrintCode($node, $add_file_tag = false)
     {
         $result = $this->prettyPrint(to_array($node, false));
@@ -29,6 +35,14 @@ class Printer extends PrettyPrinter\Standard
         return $result;
     }
     
+    /**
+     * 为PHP代码添加PHP标记
+     *
+     * @param string $content 代码内容
+     * @param null   $first  第一个表达式对象
+     * @param null   $last  最后一个表达式对象
+     * @return string 添加了PHP标记的代码内容
+     */
     public static function addPhpTag($content = '', $first = null, $last = null)
     {
         $content = '<?php' . "\n" . $content;
@@ -75,6 +89,12 @@ class Printer extends PrettyPrinter\Standard
         return $result;
     }
     
+    /**
+     * 注释前的空行
+     *
+     * @param $node  注释所属表达式
+     * @return string 若干个换行
+     */
     protected static function getFrontOfComment($node)
     {
         $type = $node->getType();
@@ -98,6 +118,13 @@ class Printer extends PrettyPrinter\Standard
         return $result;
     }
     
+    /**
+     * 表达式前的空行
+     *
+     * @param        $node  表达式
+     * @param string $front_of_comment 注释前的换行
+     * @return string 若干个换行
+     */
     protected static function getFrontOfNode($node, $front_of_comment = '')
     {
         if (empty($front_of_comment)) {
@@ -108,11 +135,23 @@ class Printer extends PrettyPrinter\Standard
         return $result;
     }
     
+    /**
+     * 表达式后的空行
+     *
+     * @param $node   表达式
+     * @return string 若干个换行
+     */
     protected static function getEndOfNode($node)
     {
         return $node instanceof Expr ? ';' : '';
     }
     
+    /**
+     * 增加缩进
+     *
+     * @param string  $code_text 代码内容
+     * @return string 加了缩进的代码内容
+     */
     protected function addIndent($code_text)
     {
         $pattern = '~\\n(?!$|' . $this->noIndentToken . ')~';

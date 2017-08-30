@@ -28,6 +28,9 @@ trait BaseMixin
         return array_filter($this->stmts);
     }
     
+    /**
+     * 复制文档式注释
+     */
     public function dupDocComment()
     {
         if ($doc_comment = $this->getDocComment(false)) {
@@ -35,6 +38,9 @@ trait BaseMixin
         }
     }
     
+    /**
+     * 复制所有文档式注释
+     */
     public function dupAllDocComments()
     {
         if ($doc_comments = $this->getDocComment(true)) {
@@ -44,6 +50,14 @@ trait BaseMixin
         }
     }
     
+    /**
+     * 查找和修改下级代码对象
+     *
+     * @param string        $type     代码类型
+     * @param bool/string   $filter   名称正则式
+     * @param null/function $callback 修改回调函数
+     * @return array
+     */
     public function find($type, $filter = false, $callback = null)
     {
         if (!isset($this->{$type})) {

@@ -21,6 +21,7 @@ use RegexIterator;
  */
 class Refactor
 {
+    use \CodeRefactor\Mixin\BackendMixin;
     
     public $options = [
         'phpVersion' => 'PREFER_PHP7',
@@ -50,6 +51,7 @@ class Refactor
             $prefix = 'PhpParser\\ParserFactory::';
             $version = constant($prefix . $this->options['phpVersion']);
             $this->_parser = $factory->create($version);
+            $this->addBackend($this->_parser);
         }
         return $this->_parser;
     }
@@ -58,6 +60,7 @@ class Refactor
     {
         if (empty($this->_printer)) {
             $this->_printer = new Printer($this->options);
+            $this->addBackend($this->_printer);
         }
         return $this->_printer;
     }
@@ -66,6 +69,7 @@ class Refactor
     {
         if (empty($this->_dumper)) {
             $this->_dumper = new NodeDumper($this->options);
+            $this->addBackend($this->_dumper);
         }
         return $this->_dumper;
     }

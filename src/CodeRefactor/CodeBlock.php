@@ -84,15 +84,15 @@ class CodeBlock
         return $this;
     }
     
-    public function findCode($type, $filter = false)
+    public function findCode($type, $pattern = false)
     {
         $callback = create_function('$n,$c', 'return $c->stmts[$n];');
-        return $this->find($type, $filter, $callback);
+        return $this->find($type, $pattern, $callback);
     }
     
-    public function removeCode($type, $filter = false)
+    public function removeCode($type, $pattern = false)
     {
         $callback = create_function('$n,$c', 'return $c->stmts[$n] = null;');
-        return $this->find($type, $filter, $callback);
+        return $this->find($type, $pattern, $callback);
     }
 }

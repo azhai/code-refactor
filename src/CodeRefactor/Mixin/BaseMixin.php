@@ -7,9 +7,31 @@
 
 namespace CodeRefactor\Mixin;
 
+use PhpParser\NodeTraverser;
+use PhpParser\NodeVisitor;
 
 trait BaseMixin
 {
+    use \CodeRefactor\Mixin\BackendMixin;
+    
+    protected $_traverser = null;
+    
+    public function getTraverser()
+    {
+        return $this->_traverser;
+    }
+    
+    /**
+     * Adds a visitor.
+     */
+    public function addVisitor(NodeVisitor $visitor)
+    {
+        if (empty($this->_traverser)) {
+            $this->_traverser = new NodeTraverser();
+            $this->addBackend($this->_traverser);
+        }
+        $this->_traverser->addVisitor($visitor);
+    }
     
     /**
      * Returns the class name.
@@ -25,7 +47,12 @@ trait BaseMixin
      */
     public function getStmts()
     {
-        return array_filter($this->stmts);
+        if ($traverser = $this->getTraverser()) {
+            $stmts = $traverser->traverse($this->stmts);
+        } else {
+            $stmts = array_filter($this->stmts);
+        }
+        return $stmts;
     }
     
     /**
@@ -54,11 +81,11 @@ trait BaseMixin
      * 查找和修改下级代码对象
      *
      * @param string        $type     代码类型
-     * @param bool/string   $filter   名称正则式
+     * @param bool/string   $pattern   名称正则式
      * @param null/function $callback 修改回调函数
      * @return array
      */
-    public function find($type, $filter = false, $callback = null)
+    public function find($type, $pattern = false, $callback = null)
     {
         if (!isset($this->{$type})) {
             return [];
@@ -66,7 +93,7 @@ trait BaseMixin
         $components = to_array($this->{$type}, false);
         $result = [];
         foreach ($components as $name => $node) {
-            if (empty($filter) || preg_match($filter, $name)) {
+            if (empty($pattern) || preg_match($pattern, $name)) {
                 if (!empty($callback)) {
                     $node = exec_function_array($callback, [$node, $this]);
                 }

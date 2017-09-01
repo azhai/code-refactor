@@ -44,18 +44,6 @@ class CodeBlock
         return $node;
     }
     
-    public function findCode($type, $filter = false)
-    {
-        $callback = create_function('$n,$c', 'return $c->stmts[$n];');
-        return $this->find($type, $filter, $callback);
-    }
-    
-    public function removeCode($type, $filter = false)
-    {
-        $callback = create_function('$n,$c', 'return $c->stmts[$n] = null;');
-        return $this->find($type, $filter, $callback);
-    }
-    
     public function getDocComment($all = false)
     {
         if ($this->comments) {
@@ -94,5 +82,17 @@ class CodeBlock
             $this->comments[] = rtrim($line);
         }
         return $this;
+    }
+    
+    public function findCode($type, $filter = false)
+    {
+        $callback = create_function('$n,$c', 'return $c->stmts[$n];');
+        return $this->find($type, $filter, $callback);
+    }
+    
+    public function removeCode($type, $filter = false)
+    {
+        $callback = create_function('$n,$c', 'return $c->stmts[$n] = null;');
+        return $this->find($type, $filter, $callback);
     }
 }

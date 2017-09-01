@@ -26,19 +26,6 @@ class ClassCode extends Builder\Class_
         parent::__construct($name);
     }
     
-    public function removeCode($name, $type = 'properties')
-    {
-        if (isset($this->{$type}) && is_array($this->{$type})) {
-            $this->duplicate();
-            $components =& $this->{$type};
-            if (isset($components[$name])) {
-                unset($components[$name]);
-                $this->node = parent::getNode();
-            }
-        }
-        return $this;
-    }
-    
     public function getConst($name = false)
     {
         if (empty($name)) {
@@ -178,5 +165,18 @@ class ClassCode extends Builder\Class_
             exec_method_array($this, 'implement', $this->node->implements);
         }
         $this->addStmts($this->node->stmts);
+    }
+    
+    public function removeCode($name, $type = 'properties')
+    {
+        if (isset($this->{$type}) && is_array($this->{$type})) {
+            $this->duplicate();
+            $components =& $this->{$type};
+            if (isset($components[$name])) {
+                unset($components[$name]);
+                $this->node = parent::getNode();
+            }
+        }
+        return $this;
     }
 }

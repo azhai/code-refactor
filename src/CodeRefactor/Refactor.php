@@ -83,17 +83,19 @@ class Refactor
         $iter = new RecursiveDirectoryIterator($code_dir);
         $iter = new RecursiveIteratorIterator($iter);
         $files = new RegexIterator($iter, $pattern);
+        $result = [];
         foreach ($files as $file) {
             try {
                 $code = file_get_contents($file);
                 $stmts = $parser->parse($code);
                 $path = $file->getPathname();
-                $this->_files[$path] = new CodeFile($stmts, $path);
+                $result[$path] = new CodeFile($stmts, $path);
             } catch (Error $e) {
                 echo 'Parse Error: ', $e->getMessage();
             }
         }
-        return $this->_files;
+        $this->_files = $result + $this->_files;
+        return $result;
     }
     
     /**

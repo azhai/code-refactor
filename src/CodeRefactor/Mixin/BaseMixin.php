@@ -12,27 +12,6 @@ use PhpParser\NodeVisitor;
 
 trait BaseMixin
 {
-    use \CodeRefactor\Mixin\BackendMixin;
-    
-    protected $_traverser = null;
-    
-    public function getTraverser()
-    {
-        return $this->_traverser;
-    }
-    
-    /**
-     * Adds a visitor.
-     */
-    public function addVisitor(NodeVisitor $visitor)
-    {
-        if (empty($this->_traverser)) {
-            $this->_traverser = new NodeTraverser();
-            $this->addBackend($this->_traverser);
-        }
-        $this->_traverser->addVisitor($visitor);
-    }
-    
     /**
      * Returns the class name.
      */
@@ -47,12 +26,7 @@ trait BaseMixin
      */
     public function getStmts()
     {
-        if ($traverser = $this->getTraverser()) {
-            $stmts = $traverser->traverse($this->stmts);
-        } else {
-            $stmts = array_filter($this->stmts);
-        }
-        return $stmts;
+        return array_filter($this->stmts);
     }
     
     /**

@@ -65,7 +65,7 @@ function replace_with($content, array $context = [], $prefix = '', $subfix = '')
  * @param bool  $read_props 读取对象公开属性为数组
  * @return array
  */
-function to_array($value, $read_props = false)
+function to_array($value, $read_props = true)
 {
     if (is_array($value)) {
         return $value;

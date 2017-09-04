@@ -34,6 +34,8 @@ class Refactor
     
     protected $_dumper = null;
     
+    protected $_traverser = null;
+    
     protected $_files = [];
     
     public function __construct(array $options = [])
@@ -72,6 +74,40 @@ class Refactor
             $this->addBackend($this->_dumper);
         }
         return $this->_dumper;
+    }
+    
+    public function getTraverser()
+    {
+        return $this->_traverser;
+    }
+    
+    /**
+     * Adds a visitor.
+     */
+    public function addVisitor(NodeVisitor $visitor)
+    {
+        if (empty($this->_traverser)) {
+            $this->_traverser = new NodeTraverser();
+            $this->addBackend($this->_traverser);
+        }
+        $this->_traverser->addVisitor($visitor);
+    }
+    
+    /**
+     * 遍历和修改代码.
+     */
+    public function traverse($node)
+    {
+        if ($traverser = $this->getTraverser()) {
+            if (property_exists($node, 'stmts')) {
+                $stmts = $node->stmts;
+            } elseif (method_exists($node, 'getStmts')) {
+                $stmts = $node->getStmts();
+            } else {
+                $stmts = to_array($node, false);
+            }
+            return $traverser->traverse($stmts);
+        }
     }
     
     /**

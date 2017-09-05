@@ -80,7 +80,7 @@ trait BaseMixin
     /**
      * 遍历和修改代码.
      */
-    public function rebuild(Refactor $refactor)
+    public function fixedBy(Refactor $refactor)
     {
         if ($traverser = $refactor->getTraverser()) {
             $this->stmts = $traverser->traverse($this->stmts);

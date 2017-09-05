@@ -52,7 +52,7 @@ foreach ($files as $path => $code) {
         $class->setProperty('monthes_per_year', 12);
     });
     //使用Visitor检查和修改所有代码（细粒度）
-    $code->rebuild($ref);
+    $code->fixedBy($ref);
     //写入新文件
     $ref->writeFile($path, $path . '.new');
 }

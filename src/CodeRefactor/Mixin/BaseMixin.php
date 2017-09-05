@@ -7,8 +7,8 @@
 
 namespace CodeRefactor\Mixin;
 
-use PhpParser\NodeTraverser;
-use PhpParser\NodeVisitor;
+use CodeRefactor\Refactor;
+
 
 trait BaseMixin
 {
@@ -75,5 +75,16 @@ trait BaseMixin
             }
         }
         return $result;
+    }
+    
+    /**
+     * 遍历和修改代码.
+     */
+    public function rebuild(Refactor $refactor)
+    {
+        if ($traverser = $refactor->getTraverser()) {
+            $this->stmts = $traverser->traverse($this->stmts);
+        }
+        return $this;
     }
 }

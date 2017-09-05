@@ -18,24 +18,6 @@ class Visitor extends NodeVisitorAbstract
 {
     protected $modify_rules = [];
     
-    public static function cbRemoveNode()
-    {
-        return [null, ];
-    }
-    
-    public static function getExprAttr(Node $node, $name)
-    {
-        $num = func_num_args();
-        for ($i = 1; $i < $num; $i ++) {
-            $name = func_get_arg($i);
-            if (! property_exists($node, $name)) {
-                return;
-            }
-            $node = $node->$name;
-        }
-        return $node;
-    }
-    
     /**
      * Normalizes a value: Converts nulls, booleans, integers,
      * floats, strings and arrays into their respective nodes
@@ -85,6 +67,43 @@ class Visitor extends NodeVisitorAbstract
         }
     }
     
+    public static function createArg($value)
+    {
+        if (! ($value instanceof Expr)) {
+            $value = self::normalizeValue($value);
+        }
+        return new Node\Arg($value);
+    }
+    
+    public static function addArgs(Node $node, $value)
+    {
+        $type = $node->getType();
+        if ('Expr_FuncCall' === $type || 'Expr_MethodCall' === $type) {
+            $args = array_slice(func_get_args(), 1);
+            foreach ($args as $value) {
+                $node->args[] = self::createArg($value);
+            }
+        }
+    }
+    
+    public static function getExprAttr(Node $node, $name)
+    {
+        $num = func_num_args();
+        for ($i = 1; $i < $num; $i ++) {
+            $name = func_get_arg($i);
+            if (! property_exists($node, $name)) {
+                return;
+            }
+            $node = $node->$name;
+        }
+        return $node;
+    }
+    
+    public static function cbRemoveNode()
+    {
+        return [null, ];
+    }
+    
     public function addRule($type, $filter = false, $callback = null)
     {
         if (! isset($this->modify_rules[$type])) {
@@ -106,6 +125,7 @@ class Visitor extends NodeVisitorAbstract
     public function enterNode(Node $node)
     {
         $type = $node->getType();
+        //当节点是要关注的类型时，才会深入访问它的子节点
         if (! isset($this->modify_rules[$type])) {
             return NodeTraverser::DONT_TRAVERSE_CHILDREN;
         }
@@ -118,14 +138,13 @@ class Visitor extends NodeVisitorAbstract
             return; //不修改
         }
         $rules = $this->modify_rules[$type];
-        reset($rules);
-        while (@list($filter, $callback) = next($rules)) {
-            $args = [&$node, ];
+        foreach ($rules as $rule) {
+            @list($filter, $callback) = $rule;
             if (is_callable($filter)) {
-                $filter = exec_function_array($filter, $args);
+                $filter = $filter($this, $node);
             }
             if ($filter && is_callable($callback)) {
-                $args[] = $filter;
+                $args = [$this, $node, $filter];
                 return exec_function_array($callback, $args);
             }
         }

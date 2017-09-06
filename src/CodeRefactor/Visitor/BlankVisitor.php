@@ -5,7 +5,7 @@
  * @copyright (c) 2017 MIT License
  */
 
-namespace CodeRefactor;
+namespace CodeRefactor\Visitor;
 
 use PhpParser\NodeTraverser;
 use PhpParser\NodeVisitorAbstract;
@@ -14,7 +14,11 @@ use PhpParser\Node\Expr;
 use PhpParser\Node\Name;
 use PhpParser\Node\Scalar;
 
-class Visitor extends NodeVisitorAbstract
+/**
+ * 空白的遍历修改器
+ * @package CodeRefactor\Visitor
+ */
+class BlankVisitor extends NodeVisitorAbstract
 {
     protected $modify_rules = [];
     
@@ -135,17 +139,30 @@ class Visitor extends NodeVisitorAbstract
     {
         $type = $node->getType();
         if (! isset($this->modify_rules[$type])) {
-            return; //不修改
+            return; //类型不符合，不作任何修改
         }
         $rules = $this->modify_rules[$type];
         foreach ($rules as $rule) {
             @list($filter, $callback) = $rule;
+            //检测是否符合规则
             if (is_callable($filter)) {
-                $filter = $filter($this, $node);
+                $ft_result = $filter($this, $node);
+            } elseif (is_array($filter) && count($filter) >= 2) {
+                list($object, $method) = array_splice($filter, 0, 2, [$this, $node]);
+                $ft_result = exec_method_array($object, $method, $filter);
+            } else {
+                $ft_result = null;
             }
-            if ($filter && is_callable($callback)) {
-                $args = [$this, $node, $filter];
+            if (empty($ft_result)) {
+                continue; //不符合，继续下一个
+            }
+            //修改节点代码
+            $args = [$this, $node, $ft_result];
+            if (is_callable($callback)) {
                 return exec_function_array($callback, $args);
+            } elseif (is_array($callback) && count($callback) >= 2) {
+                list($object, $method) = array_splice($callback, 0, 2, $args);
+                return exec_method_array($object, $method, $callback);
             }
         }
     }

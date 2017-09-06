@@ -36,7 +36,7 @@ function cb_set_name2($visitor, $node, $args)
 }
 
 //遍历和修改工具
-$visitor = new CodeRefactor\Visitor();
+$visitor = new CodeRefactor\Visitor\BlankVisitor();
 $visitor->addRule('Stmt_Class'); //遍历Class的子节点，找出所有Method
 $visitor->addRule('Stmt_ClassMethod'); //遍历Method的子节点，找出所有代码块
 $visitor->addRule('Expr_MethodCall', 'ft_set_name', 'cb_set_name2');

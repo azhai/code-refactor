@@ -13,8 +13,8 @@ namespace CodeRefactor\Visitor;
  */
 class LoadModelVisitor extends BlankVisitor
 {
-    protected $before_model_names = [];
-    protected $after_model_names = [];
+    public $model_names = [];
+    public $arg_values = [];
     
     public function __construct()
     {
@@ -28,39 +28,77 @@ class LoadModelVisitor extends BlankVisitor
     }
     
     /**
+     * 检查第一个参数是否字符串，并记录它
+     */
+    public function checkModelName(array $args)
+    {
+        $arg1 = self::getExprAttr($args[0], 'value', 'value');
+        if ($arg1 && is_string($arg1)) {
+            $model = ['path' => null, 'name' => $arg1];
+            if ($pos = strrpos($arg1, '/')) {
+                $model['path'] = substr($arg1, 0, $pos);
+                $model['name'] = substr($arg1, $pos + 1);
+            }
+            $this->model_names[] = $model;
+            return $model;
+        }
+    }
+    
+    /**
+     * 收集方法的参数
+     */
+    public function checkMethodArgs(array $args)
+    {
+        $values = [];
+        foreach ($args as $arg) {
+            $value = $arg->value;
+            $type = $value->getType();
+            if ('Expr_ConstFetch' === $type) {
+                $value->summary = $value->name;
+            } elseif ('Expr_PropertyFetch' === $type) {
+                $value->summary = sprintf('$%s->%s',
+                        $value->var->name, $value->name);
+            } elseif (starts_with($type, 'Scalar_')) {
+                $value->summary = $value->value;
+            } else {
+                $value->summary = "<$type>";
+            }
+            $values[] = $value;
+        }
+        $this->arg_values[] = $values;
+        return $values;
+    }
+    
+    /**
      * MethodCall是否符合条件
      */
-    public function ftExprLoadModel($visitor, $node)
+    public function ftExprLoadModel($node)
     {
-        $name = $visitor->getExprAttr($node, 'name');
-        $var_name = $visitor->getExprAttr($node, 'var', 'name');
+        $name = self::getExprAttr($node, 'name');
+        $var_name = self::getExprAttr($node, 'var', 'name');
         if ('model' === $name && 'load' === $var_name) {
-            return $node->args;
+            if (count($node->args) >= 1) {
+                return $this->checkModelName($node->args);
+            }
         }
     }
     
     /**
      * Model类名首字母大写，没有别名的使用全小写作为别名
      */
-    public function cbExprLoadModel($visitor, $node, $ft_result)
+    public function cbExprLoadModel($node, $ft_result)
     {
-        $arg1 = $visitor->getExprAttr($ft_result[0], 'value', 'value');
-        if ($arg1 && is_string($arg1)) {
-            $this->before_model_names[] = $arg1;
-            if ($pos = strrpos($arg1, '/')) {
-                $name = substr($arg1, $pos + 1);
-                $arg1 = substr($arg1, 0, $pos + 1) . ucfirst($name);
-            } else {
-                $name = $arg1;
-                $arg1 = ucfirst($name);
-            }
-            $this->after_model_names[] = $arg1;
-            //修改Model类名首字母大写
-            $node->args[0]->value->value = $arg1;
-            if (1 === count($node->args)) { //使用全小写类名作为别名
-                $node->args[] = $visitor->createArg(strtolower($name));
-            }
-            return $node; //提交修改
+        //修改Model类名首字母大写
+        $file = ucfirst($ft_result['name']);
+        if (isset($ft_result['path']) && $ft_result['path']) {
+            $file = $ft_result['path'] . '/' . $file;
         }
+        $node->args[0]->value->value = $file;
+        //如果没有别名，使用全小写类名作为别名
+        if (1 === count($node->args)) {
+            $name = strtolower($ft_result['name']);
+            $node->args[] = self::createArg($name);
+        }
+        return $node; //提交修改
     }
 }

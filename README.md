@@ -11,13 +11,17 @@ defined('VENDOR_DIR') or define('VENDOR_DIR', dirname(__DIR__) . '/vendor');
 require_once VENDOR_DIR . '/azhai/coderefactor/src/bootstrap.php';
 ClassLoader::register('PhpParser', VENDOR_DIR . '/nikic/php-parser/lib/PhpParser/');
 
+use CodeRefactor\Refactor;
+use CodeRefactor\Visitor\BlankVisitor;
+use CodeRefactor\Mixin\VisitorMixin;
+
 /**
  * 找出 $this->setName(...); 的代码
  */
-function ft_set_name($visitor, $node)
+function ft_set_name($node)
 {
-    $name = $visitor->getExprAttr($node, 'name');
-    $var = $visitor->getExprAttr($node, 'var', 'name');
+    $name = VisitorMixin::getExprAttr($node, 'name');
+    $var = VisitorMixin::getExprAttr($node, 'var', 'name');
     if ('setName' === $name && 'this' === $var) {
         return $node->args;
     }
@@ -26,22 +30,22 @@ function ft_set_name($visitor, $node)
 /**
  * 将上面的代码改为 $this->setName2(..., ...);
  */
-function cb_set_name2($visitor, $node, $args)
+function cb_set_name2($node, $args)
 {
-    $full_name = $visitor->getExprAttr($args[0], 'value', 'value');
+    $full_name = VisitorMixin::getExprAttr($args[0], 'value', 'value');
     @list($first_name, $last_name) = explode(' ', strval($full_name), 2);
     $node->args[0]->value->value = trim($first_name);
-    $node->args[] = $visitor->createArg(trim($last_name) ?: '');
+    $node->args[] = VisitorMixin::createArg(trim($last_name) ?: '');
     return $node;
 }
 
 //遍历和修改工具
-$visitor = new CodeRefactor\Visitor\BlankVisitor();
+$visitor = new BlankVisitor();
 $visitor->addRule('Stmt_Class'); //遍历Class的子节点，找出所有Method
 $visitor->addRule('Stmt_ClassMethod'); //遍历Method的子节点，找出所有代码块
 $visitor->addRule('Expr_MethodCall', 'ft_set_name', 'cb_set_name2');
 
-$ref = new CodeRefactor\Refactor(['phpVersion' => 'ONLY_PHP5']);
+$ref = new Refactor(['phpVersion' => 'ONLY_PHP5']);
 $ref->addVisitor($visitor);
 $files = $ref->readFiles(__DIR__, '/\.class\.php$/');
 foreach ($files as $path => $code) {

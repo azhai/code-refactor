@@ -7,14 +7,16 @@
 
 namespace CodeRefactor;
 
-use PhpParser\Error;
+use PhpParser\Error as PhpParserError;
 use PhpParser\ParserFactory;
 use PhpParser\NodeDumper;
 use PhpParser\NodeTraverser;
 use PhpParser\NodeVisitor;
+use FilesystemIterator;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RegexIterator;
+use Unirest\Exception;
 
 /**
  * 代码重构工具
@@ -100,23 +102,27 @@ class Refactor
      *
      * @param string $code_dir  目录
      * @param string $pattern   文件名正则
+     * @param bool/string $exclude   排除文件
      * @return array 文件路径和文件代码的关联数组
      */
-    public function readFiles($code_dir, $pattern = '/\.php$/')
+    public function readFiles($code_dir, $pattern = '/\.php$/', $exclude = false)
     {
         $parser = $this->getParser();
-        $iter = new RecursiveDirectoryIterator($code_dir);
+        $flags = FilesystemIterator::CURRENT_AS_PATHNAME | FilesystemIterator::SKIP_DOTS;
+        $iter = new RecursiveDirectoryIterator($code_dir, $flags);
         $iter = new RecursiveIteratorIterator($iter);
         $files = new RegexIterator($iter, $pattern);
         $result = [];
-        foreach ($files as $file) {
+        foreach ($files as $path) {
+            if ($exclude && preg_match($exclude, $path)) {
+                continue;
+            }
             try {
-                $code = file_get_contents($file);
+                $code = file_get_contents($path);
                 $stmts = $parser->parse($code);
-                $path = $file->getPathname();
                 $result[$path] = new CodeFile($stmts, $path);
-            } catch (Error $e) {
-                echo 'Parse Error: ', $e->getMessage();
+            } catch (PhpParserError $e) {
+                echo 'Parse Error: ', $e->getRawMessage();
             }
         }
         $this->_files = $result + $this->_files;
@@ -133,7 +139,7 @@ class Refactor
     public function writeFile($infile, $outfile = false)
     {
         if (!isset($this->_files[$infile])) {
-            throw new Error('File not read');
+            throw new \Exception('File not read');
         }
         $code = $this->_files[$infile];
         $printer = $this->getPrinter();

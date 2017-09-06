@@ -155,6 +155,19 @@ function exec_method_array($clsobj, $method, array $args = [])
 }
 
 /**
+ * 执行给定的函数或方法
+ */
+function exec_callback($callback, array $args = [])
+{
+    if (is_array($callback) && count($callback) >= 2) {
+        list($object, $method) = array_splice($callback, 0, 2, $args);
+        return exec_method_array($object, $method, $callback);
+    }
+    assert(is_callable($callback));
+    return exec_function_array($callback, $args);
+}
+
+/**
  * 自动加载Class/Interface/Trait.
  */
 class ClassLoader

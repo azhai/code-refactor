@@ -36,6 +36,51 @@ class Printer extends PrettyPrinter\Standard
     }
     
     /**
+     * 将迭代器中的节点转为字符串数组
+     */
+    protected function pIterator($nodes)
+    {
+        $result = array();
+        foreach ($nodes as $node) {
+            if (null === $node) {
+                $pNodes[] = '';
+            } else {
+                $result[] = $this->p($node);
+            }
+        }
+        return $result;
+    }
+    
+    /**
+     * Pretty prints an array of nodes and implodes the printed values.
+     */
+    protected function pImplode(array $nodes, $glue = '')
+    {
+        $strings = $this->pIterator($nodes);
+        return implode($glue, $strings);
+    }
+    
+    /**
+     * Pretty prints an array of nodes and implodes the printed values with commas.
+     */
+    protected function pCommaSeparated(array $nodes, $max_len = 80)
+    {
+        $result = '';
+        $line = '';
+        $strings = $this->pIterator($nodes);
+        foreach ($strings as $node_str) {
+            if ($line && strlen($line) + strlen($node_str) > $max_len) {
+                $result .= $line . ",\n";
+                $line = '    ' . $node_str;
+            } else {
+                $line .= ($line ? ', ' : '') . $node_str;
+            }
+        }
+        $result .= $line;
+        return $result;
+    }
+    
+    /**
      * 为PHP代码添加PHP标记
      *
      * @param string $content 代码内容

@@ -7,8 +7,10 @@ defined('VENDOR_DIR') or define('VENDOR_DIR', dirname(__DIR__) . '/vendor');
 ClassLoader::register('PhpParser', VENDOR_DIR . '/nikic/php-parser/lib/PhpParser/');
 
 $ref = new CodeRefactor\Refactor(['phpVersion' => 'ONLY_PHP5']);
-$files = $ref->readFiles(__DIR__, '/class.*\.php$/');
-foreach ($files as $path => $code) {
+$printer = $ref->getPrinter();
+$files = $ref->listFiles(__DIR__, '/class.*\.php$/');
+$codes = $ref->parseFiles($files);
+foreach ($codes as $path => $code) {
     $code->addComment("The WordPress File");
     $code->addComment("Class WP_Site");
     $code->find('classes', false, function ($offset, $code) {
@@ -18,5 +20,5 @@ foreach ($files as $path => $code) {
         $class->setProperty('xx_site_id', $class->getProperty('site_id'));
         $class->removeCode('path', 'properties');
     });
-    echo $ref->getPrinter()->prettyPrintCode($code, false);
+    echo $printer->prettyPrintCode($code, false);
 }

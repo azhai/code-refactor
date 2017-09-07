@@ -50,6 +50,21 @@ class Refactor
         $this->_files = [];
     }
     
+    /**
+     * 找出目录下的所有文件
+     *
+     * @param string $code_dir  目录
+     * @param string $pattern   文件名正则
+     * @return RegexIterator 文件路径迭代器
+     */
+    public static function listFiles($code_dir, $pattern = '/\.php$/')
+    {
+        $flags = FilesystemIterator::CURRENT_AS_PATHNAME | FilesystemIterator::SKIP_DOTS;
+        $dir_iter = new RecursiveDirectoryIterator($code_dir, $flags);
+        $iter_iter = new RecursiveIteratorIterator($dir_iter);
+        return new RegexIterator($iter_iter, $pattern);
+    }
+    
     public function getParser()
     {
         if (empty($this->_parser)) {
@@ -98,20 +113,15 @@ class Refactor
     }
     
     /**
-     * 解析目录下的代码文件
+     * 解析代码文件
      *
-     * @param string $code_dir  目录
-     * @param string $pattern   文件名正则
+     * @param array/Iterator $files  文件路径的数组或迭代器
      * @param bool/string $exclude   排除文件
      * @return array 文件路径和文件代码的关联数组
      */
-    public function readFiles($code_dir, $pattern = '/\.php$/', $exclude = false)
+    public function parseFiles($files, $exclude = false)
     {
         $parser = $this->getParser();
-        $flags = FilesystemIterator::CURRENT_AS_PATHNAME | FilesystemIterator::SKIP_DOTS;
-        $iter = new RecursiveDirectoryIterator($code_dir, $flags);
-        $iter = new RecursiveIteratorIterator($iter);
-        $files = new RegexIterator($iter, $pattern);
         $result = [];
         foreach ($files as $path) {
             if ($exclude && preg_match($exclude, $path)) {

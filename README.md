@@ -45,10 +45,11 @@ $visitor->addRule('Stmt_Class'); //遍历Class的子节点，找出所有Method
 $visitor->addRule('Stmt_ClassMethod'); //遍历Method的子节点，找出所有代码块
 $visitor->addRule('Expr_MethodCall', 'ft_set_name', 'cb_set_name2');
 
+$files = Refactor::listFiles(__DIR__, '/\.class\.php$/');
 $ref = new Refactor(['phpVersion' => 'ONLY_PHP5']);
 $ref->addVisitor($visitor);
-$files = $ref->readFiles(__DIR__, '/\.class\.php$/');
-foreach ($files as $path => $code) {
+$codes = $ref->parseFiles($files);
+foreach ($codes as $path => $code) {
     //添加一个常量和一个属性（粗粒度）
     $code->find('classes', false, function ($offset, $code) {
         $class = $code->stmts[$offset];

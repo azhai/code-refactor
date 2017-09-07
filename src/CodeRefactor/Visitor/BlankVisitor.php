@@ -20,9 +20,10 @@ class BlankVisitor extends NodeVisitorAbstract
 {
     use \CodeRefactor\Mixin\VisitorMixin;
     
-    protected $modify_rules = [];
+    public $modify_times = 0;     //修改次数
+    protected $modify_rules = []; //匹配改写规则
     
-    public function addRule($type, $filter = false, $callback = null)
+    public function addRule($type, $filter = null, $callback = null)
     {
         if (! isset($this->modify_rules[$type])) {
             $this->modify_rules[$type] = [];
@@ -58,14 +59,23 @@ class BlankVisitor extends NodeVisitorAbstract
         $rules = $this->modify_rules[$type];
         foreach ($rules as $rule) {
             @list($filter, $callback) = $rule;
+            if (is_null($filter)) {
+                continue;
+            }
             //检测是否符合规则
             $args = [$node, ];
             $ft_result = exec_callback($filter, $args);
-            if (! is_null($ft_result)) {
-                //修改节点代码
-                $args[] = $ft_result;
-                return exec_callback($callback, $args);
+            if (is_null($callback) || is_null($ft_result)) {
+                continue;
             }
+            //修改节点代码
+            $args[] = $ft_result;
+            $cb_result = exec_callback($callback, $args);
+            if (is_null($cb_result)) {
+                continue;
+            }
+            $this->modify_times ++;
+            return $cb_result;
         }
     }
 }

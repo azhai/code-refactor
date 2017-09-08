@@ -132,7 +132,9 @@ class Refactor
                 $stmts = $parser->parse($code);
                 $result[$path] = new CodeFile($stmts, $path);
             } catch (PhpParserError $e) {
+                echo $path, ' Line ', $e->getLine(), ":\n";
                 echo 'Parse Error: ', $e->getRawMessage();
+                echo "\n";
             }
         }
         $this->_files = $result + $this->_files;

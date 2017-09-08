@@ -69,11 +69,11 @@ class Printer extends PrettyPrinter\Standard
         $line = '';
         $strings = $this->pIterator($nodes);
         foreach ($strings as $node_str) {
-            if ($line && strlen($line) + strlen($node_str) > $max_len) {
+            if ($line !== '' && strlen($line) + strlen($node_str) > $max_len) {
                 $result .= $line . ",\n";
                 $line = '    ' . $node_str;
             } else {
-                $line .= ($line ? ', ' : '') . $node_str;
+                $line .= ($line !== '' ? ', ' : '') . $node_str;
             }
         }
         $result .= $line;

@@ -12,7 +12,6 @@ use PhpParser\Node\Stmt;
 
 class CodeFile extends CodeBlock
 {
-    
     public $filename = '';
     
     protected $namespaces = [];
@@ -71,11 +70,13 @@ class CodeFile extends CodeBlock
             case 'Stmt_Interface':
             case 'Stmt_Trait':
                 $stmt = new Code\ClassCode($stmt);
+                // no break
             case 'ClassCode':
                 $this->classes[$name] = $this->offset;
                 break;
             case 'Stmt_Function':
                 $stmt = new Code\FunctionCode($stmt);
+                // no break
             case 'FunctionCode':
                 $name = strtolower($name);
                 $this->functions[$name] = $this->offset;

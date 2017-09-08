@@ -9,7 +9,6 @@ namespace CodeRefactor\Mixin;
 
 use PhpParser\Comment;
 
-
 trait CodeMixin
 {
     use \CodeRefactor\Mixin\BaseMixin;

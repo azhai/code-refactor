@@ -173,7 +173,6 @@ function exec_callback($callback, array $args = [])
  */
 class ClassLoader
 {
-    
     protected static $instance = null;
     
     protected static $ns_prefixes = ['CodeRefactor' => __CODE_REFACTOR_PATH];

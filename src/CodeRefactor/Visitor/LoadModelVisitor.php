@@ -23,8 +23,11 @@ class LoadModelVisitor extends BlankVisitor
         $this->addRule('Stmt_Class');
         $this->addRule('Stmt_ClassMethod');
         //增加规则用于目标类型的捕捉和修改操作
-        $this->addRule('Expr_MethodCall',
-            [$this, 'ftExprLoadModel'], [$this, 'cbExprLoadModel']);
+        $this->addRule(
+            'Expr_MethodCall',
+            [$this, 'ftExprLoadModel'],
+            [$this, 'cbExprLoadModel']
+        );
     }
     
     /**
@@ -56,8 +59,11 @@ class LoadModelVisitor extends BlankVisitor
             if ('Expr_ConstFetch' === $type) {
                 $value->summary = $value->name;
             } elseif ('Expr_PropertyFetch' === $type) {
-                $value->summary = sprintf('$%s->%s',
-                        $value->var->name, $value->name);
+                $value->summary = sprintf(
+                    '$%s->%s',
+                        $value->var->name,
+                    $value->name
+                );
             } elseif (starts_with($type, 'Scalar_')) {
                 $value->summary = $value->value;
             } else {

@@ -80,11 +80,13 @@ class ClassCode extends Builder\Class_
                 break;
             case 'Stmt_Property':
                 $stmt = new PropertyCode($stmt);
+                // no break
             case 'PropertyCode':
                 $this->properties[$name] = $stmt;
                 break;
             case 'Stmt_ClassMethod':
                 $stmt = new MethodCode($stmt);
+                // no break
             case 'MethodCode':
                 $name = strtolower($name);
                 $this->methods[$name] = $stmt;

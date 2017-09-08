@@ -11,7 +11,6 @@ use PhpParser\NodeTraverser;
 use PhpParser\NodeVisitorAbstract;
 use PhpParser\Node;
 
-
 /**
  * 空白的遍历修改器
  * @package CodeRefactor\Visitor

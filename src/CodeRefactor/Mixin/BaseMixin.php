@@ -9,7 +9,6 @@ namespace CodeRefactor\Mixin;
 
 use CodeRefactor\Refactor;
 
-
 trait BaseMixin
 {
     /**

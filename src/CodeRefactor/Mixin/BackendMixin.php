@@ -7,7 +7,6 @@
 
 namespace CodeRefactor\Mixin;
 
-
 trait BackendMixin
 {
     protected $backend_methods = [];

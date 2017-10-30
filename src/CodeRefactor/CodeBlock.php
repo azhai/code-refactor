@@ -36,6 +36,20 @@ class CodeBlock
         return $this;
     }
     
+    /**
+     * Insert or replace some statements.
+     */
+    public function insertStmts(array $stmts, $offset = 0, $remove = 0)
+    {
+        if (false === $offset) {
+            $offset = count($this->stmts);
+        } elseif (false === $remove) {
+            $remove = count($this->stmts);
+        }
+        array_splice($this->stmts, $offset, $remove, $stmts);
+        return $this;
+    }
+    
     public static function getStmtNode($node)
     {
         if (method_exists($node, 'getNode')) {

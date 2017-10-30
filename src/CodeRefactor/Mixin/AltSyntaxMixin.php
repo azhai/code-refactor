@@ -76,8 +76,7 @@ trait AltSyntaxMixin
 
     //There is no alternative-syntax or template syntax for a do-while-loop.
     protected function pStmt_Do(Stmt\Do_ $node) {
-        return 'do {' . $this->pStmts($node->stmts) . "\n"
-             . '} while (' . $this->p($node->cond) . ');';
+        return parent::pStmt_Do($node);
     }
 
     protected function pStmt_Switch(Stmt\Switch_ $node) {
@@ -91,15 +90,11 @@ trait AltSyntaxMixin
     
     // Other
     
-    protected function pStmt_InlineHTML(Stmt\InlineHTML $node) {
-        $newline = $node->getAttribute('hasLeadingNewline', true) ? "\n" : '';
-        return '?>' . $this->pNoIndent($newline . $node->value) . '<?php ';
-    }
-    
     protected function pStmt_Echo(Stmt\Echo_ $node) {
+        $result = parent::pStmt_Echo($node);
         if ($this->options['alternativeSyntax'] && 1 === count($node->exprs)) {
-            return '/*ECHO*/echo ' . $this->pCommaSeparated($node->exprs) . ' ;/*ENDECHO*/';
+            return '/*ECHO*/' . $result . '/*ENDECHO*/';
         }
-        return parent::pStmt_Echo($node);
+        return $result;
     }
 }

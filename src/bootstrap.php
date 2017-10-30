@@ -77,6 +77,25 @@ function to_array($value, $read_props = true)
 }
 
 /**
+ * 将多维折叠数组变为一维
+ *
+ * @param array $values     多维数组
+ * @param bool $drop_empty  去掉为空的值
+ * @return array
+ */
+function array_flatten(array $values, $drop_empty = false)
+{
+    $result = [];
+    array_walk_recursive($values, function($value)
+            use(&$result, $drop_empty) {
+        if (!$drop_empty || !empty($value)) {
+            $result[] = $value;
+        }
+    });
+    return $result;
+}
+
+/**
  * 调用函数/闭包/可invoke的对象
  * 不使用call_user_func_array()，因为它有几个限制：
  * 一是函数的默认参数会丢失；

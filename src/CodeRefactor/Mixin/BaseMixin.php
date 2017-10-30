@@ -25,7 +25,7 @@ trait BaseMixin
      */
     public function getStmts()
     {
-        return array_filter($this->stmts);
+        return array_flatten($this->stmts, true);
     }
     
     /**

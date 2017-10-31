@@ -30,6 +30,7 @@ class Refactor
     public $options = [
         'phpVersion' => 'PREFER_PHP7',
         'shortArraySyntax' => false,
+        'alternativeSyntax' => false,
     ];
     
     protected $_parser = null;

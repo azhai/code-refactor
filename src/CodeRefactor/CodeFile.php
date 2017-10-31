@@ -26,6 +26,16 @@ class CodeFile extends CodeBlock
         parent::__construct($stmts);
     }
     
+    public function getOffset($type, $name)
+    {
+        if (property_exists($this, $type)) {
+            $prop = $this->$type;
+            if (is_array($prop) && isset($prop[$name])) {
+                return $prop[$name];
+            }
+        }
+    }
+    
     public function getClass($name = false)
     {
         if (empty($name)) {

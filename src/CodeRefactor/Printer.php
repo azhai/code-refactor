@@ -13,6 +13,8 @@ use PhpParser\Node\Stmt;
 
 class Printer extends PrettyPrinter\Standard
 {
+    use \CodeRefactor\Mixin\AltSyntaxMixin;
+    
     /**
      * 将代码对象输出为字符串
      *
@@ -31,6 +33,9 @@ class Printer extends PrettyPrinter\Standard
                 $first = $last = null;
             }
             $result = self::addPhpTag($result, $first, $last);
+        }
+        if ($this->options['alternativeSyntax']) {
+            $result = self::stripLongPhpTag($result);
         }
         return $result;
     }
@@ -98,6 +103,17 @@ class Printer extends PrettyPrinter\Standard
             $content = preg_replace('/<\\?php$/', '', rtrim($content));
         }
         return $content;
+    }
+    
+    /**
+     * 去掉PHP代码中多余的长标记
+     *
+     * @param string $content 代码内容
+     */
+    public static function stripLongPhpTag($content = '')
+    {
+        $content = str_replace(["\r\n", "\r"], "\n", $content); //统一换行符
+        return preg_replace(['/<\?php\s+<\?=/m', '/\?>\s+\?>/m'], ['<?=', '?>'], $content);
     }
     
     /**

@@ -34,10 +34,7 @@ class Printer extends PrettyPrinter\Standard
             }
             $result = self::addPhpTag($result, $first, $last);
         }
-        if ($this->options['alternativeSyntax']) {
-            $result = self::stripLongPhpTag($result);
-        }
-        return $result;
+        return $this->changeShortEchoTag($result);
     }
     
     /**
@@ -86,6 +83,22 @@ class Printer extends PrettyPrinter\Standard
     }
     
     /**
+     * 将单行echo改为简写方式
+     *
+     * @param string $content 代码内容
+     */
+    public function changeShortEchoTag($content = '')
+    {
+        $content = str_replace(["\r\n", "\r"], "\n", $content); //统一换行符
+        if ($this->options['alternativeSyntax']) {
+            $finders = ['!<\?php\s+/\*ECHO\*/echo!m', '!;/\*ENDECHO\*/\s+\?>!m'];
+            $content = preg_replace($finders, ['<?=', '?>'], $content);
+            $content = str_replace(['/*ECHO*/', '/*ENDECHO*/'], '', $content);
+        }
+        return $content;
+    }
+    
+    /**
      * 为PHP代码添加PHP标记
      *
      * @param string $content 代码内容
@@ -103,17 +116,6 @@ class Printer extends PrettyPrinter\Standard
             $content = preg_replace('/<\\?php$/', '', rtrim($content));
         }
         return $content;
-    }
-    
-    /**
-     * 去掉PHP代码中多余的长标记
-     *
-     * @param string $content 代码内容
-     */
-    public static function stripLongPhpTag($content = '')
-    {
-        $content = str_replace(["\r\n", "\r"], "\n", $content); //统一换行符
-        return preg_replace(['/<\?php\s+<\?=/m', '/\?>\s+\?>/m'], ['<?=', '?>'], $content);
     }
     
     /**

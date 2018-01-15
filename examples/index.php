@@ -2,8 +2,8 @@
 error_reporting(E_ALL);
 @header('Content-Type: text/text; charset=utf-8');
 
-require_once dirname(__DIR__) . '/src/bootstrap.php';
 defined('VENDOR_DIR') or define('VENDOR_DIR', dirname(__DIR__) . '/vendor');
+require_once dirname(__DIR__) . '/src/bootstrap.php';
 ClassLoader::register('PhpParser', VENDOR_DIR . '/nikic/php-parser/lib/PhpParser/');
 
 $ref = new CodeRefactor\Refactor([

@@ -1,5 +1,5 @@
 {
-    "name" : "azhai/CodeRefactor",
+    "name" : "azhai/code-refactor",
     "description" : "Toolset for generating PHP code",
     "type" : "library",
     "license" : "MIT",

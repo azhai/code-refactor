@@ -8,13 +8,14 @@
 namespace CodeRefactor;
 
 use PhpParser\PrettyPrinter;
+use PhpParser\Node\Scalar;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Stmt;
 
 class Printer extends PrettyPrinter\Standard
 {
     use \CodeRefactor\Mixin\AltSyntaxMixin;
-    
+
     /**
      * 将代码对象输出为字符串
      *
@@ -36,23 +37,7 @@ class Printer extends PrettyPrinter\Standard
         }
         return $this->changeShortEchoTag($result);
     }
-    
-    /**
-     * 将迭代器中的节点转为字符串数组
-     */
-    protected function pIterator($nodes)
-    {
-        $result = array();
-        foreach ($nodes as $node) {
-            if (null === $node) {
-                $pNodes[] = '';
-            } else {
-                $result[] = $this->p($node);
-            }
-        }
-        return $result;
-    }
-    
+
     /**
      * Pretty prints an array of nodes and implodes the printed values.
      */
@@ -61,7 +46,7 @@ class Printer extends PrettyPrinter\Standard
         $strings = $this->pIterator($nodes);
         return implode($glue, $strings);
     }
-    
+
     /**
      * Pretty prints an array of nodes and implodes the printed values with commas.
      */
@@ -81,7 +66,36 @@ class Printer extends PrettyPrinter\Standard
         $result .= $line;
         return $result;
     }
-    
+
+    /**
+     * 将迭代器中的节点转为字符串数组
+     */
+    protected function pIterator($nodes)
+    {
+        $result = [];
+        foreach ($nodes as $i => $node) {
+            if (null === $node) {
+                continue;
+            }
+            if ($node instanceof Expr\ArrayItem
+                    && $node->key instanceof Scalar\LNumber
+                    && $i === $node->key->value) {
+                $node->key = null;
+            }
+            $result[] = $this->p($node);
+        }
+        return $result;
+    }
+
+    protected function pExpr_Array(Expr\Array_ $node) {
+        if (isset($this->options['shortArraySyntax'])) {
+            $syntax = $this->options['shortArraySyntax'] ?
+                    Expr\Array_::KIND_SHORT : Expr\Array_::KIND_LONG;
+            $node->setAttribute('kind', $syntax);
+        }
+        return parent::pExpr_Array($node);
+    }
+
     /**
      * 将单行echo改为简写方式
      *
@@ -97,7 +111,7 @@ class Printer extends PrettyPrinter\Standard
         }
         return $content;
     }
-    
+
     /**
      * 为PHP代码添加PHP标记
      *
@@ -117,7 +131,7 @@ class Printer extends PrettyPrinter\Standard
         }
         return $content;
     }
-    
+
     /**
      * Pretty prints an array of nodes (statements) and indents them optionally.
      */
@@ -151,7 +165,7 @@ class Printer extends PrettyPrinter\Standard
         }
         return $result;
     }
-    
+
     /**
      * 注释前的空行
      *
@@ -165,6 +179,8 @@ class Printer extends PrettyPrinter\Standard
             case 'Stmt_Class':
             case 'Stmt_Interface':
             case 'Stmt_Trait':
+            case 'Stmt_TraitUse':
+            case 'Stmt_ClassConst':
             case 'Stmt_Property':
             case 'Stmt_ClassMethod':
             case 'Stmt_Function':
@@ -180,7 +196,7 @@ class Printer extends PrettyPrinter\Standard
         }
         return $result;
     }
-    
+
     /**
      * 表达式前的空行
      *
@@ -197,7 +213,7 @@ class Printer extends PrettyPrinter\Standard
         }
         return $result;
     }
-    
+
     /**
      * 表达式后的空行
      *
@@ -208,7 +224,7 @@ class Printer extends PrettyPrinter\Standard
     {
         return $node instanceof Expr ? ';' : '';
     }
-    
+
     /**
      * 增加缩进
      *

@@ -12,13 +12,13 @@ use PhpParser\Comment;
 class CodeBlock
 {
     use \CodeRefactor\Mixin\BaseMixin;
-    
+
     public $comments = [];
-    
+
     public $stmts = [];
-    
+
     protected $offset = 0;
-    
+
     public function __construct(array $stmts = [])
     {
         $this->offset = 0;
@@ -26,7 +26,7 @@ class CodeBlock
             $this->addStmt($stmt);
         }
     }
-    
+
     /**
      * Adds a statement.
      */
@@ -35,7 +35,7 @@ class CodeBlock
         $this->stmts[$this->offset++] = $stmt;
         return $this;
     }
-    
+
     /**
      * Insert or replace some statements.
      */
@@ -49,7 +49,7 @@ class CodeBlock
         array_splice($this->stmts, $offset, $remove, $stmts);
         return $this;
     }
-    
+
     public static function getStmtNode($node)
     {
         if (method_exists($node, 'getNode')) {
@@ -57,7 +57,7 @@ class CodeBlock
         }
         return $node;
     }
-    
+
     public function getDocComment($all = false)
     {
         if ($this->comments) {
@@ -68,7 +68,7 @@ class CodeBlock
             return $all ? [] : null;
         }
     }
-    
+
     public function setDocComment($doc_comment)
     {
         if ($doc_comment instanceof Comment) {
@@ -85,7 +85,7 @@ class CodeBlock
             $this->comments[] = ltrim($line, '* ');
         }
     }
-    
+
     public function addComment($text)
     {
         if ($this->comments) {
@@ -97,13 +97,13 @@ class CodeBlock
         }
         return $this;
     }
-    
+
     public function findCode($type, $pattern = false)
     {
         $callback = create_function('$n,$c', 'return $c->stmts[$n];');
         return $this->find($type, $pattern, $callback);
     }
-    
+
     public function removeCode($type, $pattern = false)
     {
         $callback = create_function('$n,$c', 'return $c->stmts[$n] = null;');

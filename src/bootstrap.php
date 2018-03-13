@@ -100,8 +100,7 @@ if (! function_exists('array_flatten')) {
     function array_flatten(array $values, $drop_empty = false)
     {
         $result = [];
-        array_walk_recursive($values, function($value)
-                use(&$result, $drop_empty) {
+        array_walk_recursive($values, function ($value) use (&$result, $drop_empty) {
             if (!$drop_empty || !empty($value)) {
                 $result[] = $value;
             }
@@ -219,20 +218,31 @@ if (! class_exists('ClassLoader')) {
     class ClassLoader
     {
         protected static $instance = null;
-        
-        protected static $ns_prefixes = ['CodeRefactor' => __CODE_REFACTOR_PATH];
-        
-        public static function register($prefix, $path)
+        //根据namespace前缀，自动加载类文件
+        protected $third_parties = ['CodeRefactor' => __CODE_REFACTOR_PATH];
+        protected $multi_prefixes = [];
+
+        public static function initialize()
         {
             if (!self::$instance) {
                 self::$instance = new self();
                 spl_autoload_register([self::$instance, 'autoload']);
             }
-            $prefix = trim($prefix, '\\');
-            $path = rtrim($path, '\\/ ') . '/';
-            self::$ns_prefixes[$prefix] = $path;
+            return self::$instance;
         }
-        
+
+        public static function register($prefix, $path)
+        {
+            $instance = self::initialize();
+            $prefix = ltrim(rtrim($prefix, '\\'), '\\_');
+            $path = rtrim($path, '/\\') . DIRECTORY_SEPARATOR;
+            $instance->third_parties[$prefix] = $path;
+            if (false !== strpos($prefix, '\\')) { //复杂前缀另建索引
+                $instance->multi_prefixes[] = $prefix;
+                ksort($instance->multi_prefixes);
+            }
+        }
+
         /**
          * 自动加载.
          *
@@ -242,19 +252,26 @@ if (! class_exists('ClassLoader')) {
         {
             $class = ltrim(rtrim($class, '\\'), '\\_');
             $first = strstr($class, '\\', true);
-            if (!isset(self::$ns_prefixes[$first])) {
-                // 在已知类中查找
-                return false;
+            if (! isset($this->third_parties[$first])) { //尝试遍历复杂前缀
+                $i = count($this->multi_prefixes);
+                do {
+                    if (--$i < 0) {
+                        return false;
+                    }
+                    $first = $this->multi_prefixes[$i];
+                } while (! starts_with($class, $first));
             }
             $name = substr($class, strlen($first) + 1);
             $path = str_replace('\\', DIRECTORY_SEPARATOR, $name);
-            $fullpath = self::$ns_prefixes[$first] . $path . '.php';
+            $fullpath = $this->third_parties[$first] . $path . '.php';
             if (self::require_file($fullpath)) {
                 $autoload = false;
-                return class_exists($class, $autoload) || interface_exists($class, $autoload) || trait_exists($class, $autoload);
+                return class_exists($class, $autoload)
+                    || interface_exists($class, $autoload)
+                    || trait_exists($class, $autoload);
             }
         }
-        
+
         /**
          * 如果文件存在，加载文件中的代码.
          *

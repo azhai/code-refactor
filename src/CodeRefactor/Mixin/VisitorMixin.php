@@ -41,7 +41,7 @@ trait VisitorMixin
         } elseif (is_string($value)) {
             return new Scalar\String_($value);
         } elseif (is_array($value)) {
-            $items = array();
+            $items = [];
             $lastKey = -1;
             foreach ($value as $itemKey => $itemValue) {
                 // for consecutive, numeric keys don't generate keys

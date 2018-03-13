@@ -5,7 +5,7 @@
     "license" : "MIT",
     "authors" : [{
             "name" : "Ryan Liu",
-            "homepage" : "http://azhai.github.io/"
+            "homepage" : "http://azhai.surge.sh/"
         }
     ],
     "keywords" : [
@@ -16,8 +16,14 @@
             "CodeRefactor\\" : "src/"
         }
     },
+    "repositories": {
+        "packagist": {
+            "type": "composer",
+            "url": "https://packagist.phpcomposer.com"
+        }
+    },
     "require" : {
         "php" : ">=5.5",
-        "nikic/php-parser" : "^3"
+        "nikic/php-parser" : "3.*"
     }
 }

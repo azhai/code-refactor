@@ -18,7 +18,7 @@ $codes = $ref->parseFiles($files);
 foreach ($codes as $path => $code) {
     $code->addComment("The WordPress File");
     $code->addComment("Class WP_Site");
-    $code->find('classes', false, function ($offset, $code) use($parser) {
+    $code->find('classes', false, function ($offset, $code) use ($parser) {
         $class = $code->stmts[$offset];
         //增加常量
         $class->setConst('MONTHES_PER_YEAR', 12);

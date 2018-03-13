@@ -13,7 +13,8 @@ trait AltSyntaxMixin
 {
     // Control flow
 
-    protected function pStmt_If(Stmt\If_ $node) {
+    protected function pStmt_If(Stmt\If_ $node)
+    {
         if ($this->options['alternativeSyntax']) {
             return 'if (' . $this->p($node->cond) . '):'
                  . $this->pStmts($node->stmts) . "\n"
@@ -25,7 +26,8 @@ trait AltSyntaxMixin
         }
     }
 
-    protected function pStmt_ElseIf(Stmt\ElseIf_ $node) {
+    protected function pStmt_ElseIf(Stmt\ElseIf_ $node)
+    {
         if ($this->options['alternativeSyntax']) {
             return ' elseif (' . $this->p($node->cond) . '):'
                  . $this->pStmts($node->stmts) . "\n";
@@ -34,7 +36,8 @@ trait AltSyntaxMixin
         }
     }
 
-    protected function pStmt_Else(Stmt\Else_ $node) {
+    protected function pStmt_Else(Stmt\Else_ $node)
+    {
         if ($this->options['alternativeSyntax']) {
             return ' else:' . $this->pStmts($node->stmts) . "\n";
         } else {
@@ -42,7 +45,8 @@ trait AltSyntaxMixin
         }
     }
 
-    protected function pStmt_For(Stmt\For_ $node) {
+    protected function pStmt_For(Stmt\For_ $node)
+    {
         if ($this->options['alternativeSyntax']) {
             return 'for ('
                  . $this->pCommaSeparated($node->init) . ';' . (!empty($node->cond) ? ' ' : '')
@@ -54,7 +58,8 @@ trait AltSyntaxMixin
         }
     }
 
-    protected function pStmt_Foreach(Stmt\Foreach_ $node) {
+    protected function pStmt_Foreach(Stmt\Foreach_ $node)
+    {
         if ($this->options['alternativeSyntax']) {
             return 'foreach (' . $this->p($node->expr) . ' as '
                  . (null !== $node->keyVar ? $this->p($node->keyVar) . ' => ' : '')
@@ -65,7 +70,8 @@ trait AltSyntaxMixin
         }
     }
 
-    protected function pStmt_While(Stmt\While_ $node) {
+    protected function pStmt_While(Stmt\While_ $node)
+    {
         if ($this->options['alternativeSyntax']) {
             return 'while (' . $this->p($node->cond) . '):'
                  . $this->pStmts($node->stmts) . "\n" . 'endwhile;';
@@ -75,11 +81,13 @@ trait AltSyntaxMixin
     }
 
     //There is no alternative-syntax or template syntax for a do-while-loop.
-    protected function pStmt_Do(Stmt\Do_ $node) {
+    protected function pStmt_Do(Stmt\Do_ $node)
+    {
         return parent::pStmt_Do($node);
     }
 
-    protected function pStmt_Switch(Stmt\Switch_ $node) {
+    protected function pStmt_Switch(Stmt\Switch_ $node)
+    {
         if ($this->options['alternativeSyntax']) {
             return 'switch (' . $this->p($node->cond) . '):'
                  . $this->pStmts($node->cases) . "\n" . 'endswitch;';
@@ -90,7 +98,8 @@ trait AltSyntaxMixin
     
     // Other
     
-    protected function pStmt_Echo(Stmt\Echo_ $node) {
+    protected function pStmt_Echo(Stmt\Echo_ $node)
+    {
         $result = parent::pStmt_Echo($node);
         if ($this->options['alternativeSyntax'] && 1 === count($node->exprs)) {
             return '/*ECHO*/' . $result . '/*ENDECHO*/';

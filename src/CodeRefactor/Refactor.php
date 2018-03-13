@@ -26,23 +26,23 @@ use Unirest\Exception;
 class Refactor
 {
     use \CodeRefactor\Mixin\BackendMixin;
-    
+
     public $options = [
         'phpVersion' => 'PREFER_PHP7',
         'shortArraySyntax' => false,
         'alternativeSyntax' => false,
     ];
-    
+
     protected $_parser = null;
-    
+
     protected $_printer = null;
-    
+
     protected $_dumper = null;
-    
+
     protected $_traverser = null;
-    
+
     protected $_files = [];
-    
+
     public function __construct(array $options = [])
     {
         if ($options) {
@@ -50,7 +50,7 @@ class Refactor
         }
         $this->_files = [];
     }
-    
+
     /**
      * 找出目录下的所有文件
      *
@@ -65,7 +65,7 @@ class Refactor
         $iter_iter = new RecursiveIteratorIterator($dir_iter);
         return new RegexIterator($iter_iter, $pattern);
     }
-    
+
     public function getParser()
     {
         if (empty($this->_parser)) {
@@ -77,7 +77,7 @@ class Refactor
         }
         return $this->_parser;
     }
-    
+
     public function getPrinter()
     {
         if (empty($this->_printer)) {
@@ -86,7 +86,7 @@ class Refactor
         }
         return $this->_printer;
     }
-    
+
     public function getDumper()
     {
         if (empty($this->_dumper)) {
@@ -95,12 +95,12 @@ class Refactor
         }
         return $this->_dumper;
     }
-    
+
     public function getTraverser()
     {
         return $this->_traverser;
     }
-    
+
     /**
      * Adds a visitor.
      */
@@ -112,7 +112,13 @@ class Refactor
         }
         $this->_traverser->addVisitor($visitor);
     }
-    
+
+    public function parseCode($code)
+    {
+        $parser = $this->getParser();
+        return $parser->parse('<?php ' . $code . ' ?>');
+    }
+
     /**
      * 解析代码文件
      *
@@ -141,7 +147,7 @@ class Refactor
         $this->_files = $result + $this->_files;
         return $result;
     }
-    
+
     /**
      * 将解析好的代码写入文件
      *

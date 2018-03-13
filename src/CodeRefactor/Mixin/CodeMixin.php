@@ -7,21 +7,24 @@
 
 namespace CodeRefactor\Mixin;
 
+use PhpParser\CodeBlock;
 use PhpParser\Comment;
 
 trait CodeMixin
 {
     use \CodeRefactor\Mixin\BaseMixin;
-    
+
+    public $block = null;
+
     protected $node = null;
-    
+
     protected $is_duplicated = false;
-    
+
     public function isMixinCode()
     {
         return true;
     }
-    
+
     /**
      * Returns the node name.
      */
@@ -29,7 +32,7 @@ trait CodeMixin
     {
         return $this->name;
     }
-    
+
     /**
      * Set the node name.
      */
@@ -40,12 +43,12 @@ trait CodeMixin
             $this->node->name = $name;
         }
     }
-    
+
     public function &getAttribute($key, $default = null)
     {
         return $this->getNode()->getAttribute($key, $default);
     }
-    
+
     /**
      * Returns the built node.
      */
@@ -53,17 +56,21 @@ trait CodeMixin
     {
         return $this->node;
     }
-    
+
     /**
      * Adds a statement.
      */
     public function addStmt($stmt)
     {
+        if (!$this->block) {
+            $this->block = new CodeBlock($this->stmts);
+            $this->stmts = & $this->block->stmts;
+        }
         $stmt = $this->normalizeNode($stmt);
         $this->stmts[] = $stmt;
         return $this;
     }
-    
+
     /**
      * Duplicate node attributes to this
      */
@@ -76,7 +83,7 @@ trait CodeMixin
         }
         return $this;
     }
-    
+
     public function getDocComment($all = false)
     {
         $node = $this->getNode();
@@ -86,7 +93,7 @@ trait CodeMixin
             return $node ? $node->getDocComment() : null;
         }
     }
-    
+
     public function addComment($comment)
     {
         if (!isset($this->attributes['comments'])) {

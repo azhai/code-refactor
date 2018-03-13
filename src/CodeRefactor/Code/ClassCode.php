@@ -14,9 +14,9 @@ use PhpParser\Node\Stmt;
 class ClassCode extends Builder\Class_
 {
     use \CodeRefactor\Mixin\CodeMixin;
-    
+
     protected $stmts = [];
-    
+
     public function __construct(Stmt\ClassLike $node, $name = '')
     {
         $this->node = $node;
@@ -25,7 +25,7 @@ class ClassCode extends Builder\Class_
         }
         parent::__construct($name);
     }
-    
+
     public function getConst($name = false)
     {
         if (empty($name)) {
@@ -34,7 +34,7 @@ class ClassCode extends Builder\Class_
             return $this->constants[$name];
         }
     }
-    
+
     public function setConst($name, $node)
     {
         $this->duplicate();
@@ -52,7 +52,7 @@ class ClassCode extends Builder\Class_
         $this->node = parent::getNode();
         return $this;
     }
-    
+
     /**
      * Adds a statement.
      */
@@ -72,8 +72,8 @@ class ClassCode extends Builder\Class_
         }
         $type = $stmt->getType();
         switch ($type) {
-            case 'Stmt_Use':
-                $this->uses = $stmt->uses + $this->uses;
+            case 'Stmt_TraitUse':
+                $this->uses[] = $stmt;
                 break;
             case 'Stmt_ClassConst':
                 $this->constants[$name] = $stmt;
@@ -95,7 +95,7 @@ class ClassCode extends Builder\Class_
         $this->stmts[] = $stmt;
         return $this;
     }
-    
+
     public function getProperty($name = false)
     {
         $this->duplicate();
@@ -105,7 +105,7 @@ class ClassCode extends Builder\Class_
             return $this->properties[$name];
         }
     }
-    
+
     public function setProperty($name, $node = null)
     {
         $this->duplicate();
@@ -124,7 +124,7 @@ class ClassCode extends Builder\Class_
         $this->node = parent::getNode();
         return $this;
     }
-    
+
     public function getMethod($name = false)
     {
         $this->duplicate();
@@ -136,7 +136,7 @@ class ClassCode extends Builder\Class_
             return $this->methods[$name];
         }
     }
-    
+
     public function setMethod($name, $node = null)
     {
         $this->duplicate();
@@ -146,13 +146,14 @@ class ClassCode extends Builder\Class_
             $node = new MethodCode($node, $name);
         } else {
             $stmt = new Builder\Method($name);
+            $stmt->makePublic();
             $node = new MethodCode($stmt->getNode());
         }
         $this->addStmt($node);
         $this->node = parent::getNode();
         return $this;
     }
-    
+
     /**
      * Duplicate node attributes to this
      */
@@ -168,7 +169,7 @@ class ClassCode extends Builder\Class_
         }
         $this->addStmts($this->node->stmts);
     }
-    
+
     public function removeCode($name, $type = 'properties')
     {
         if (isset($this->{$type}) && is_array($this->{$type})) {

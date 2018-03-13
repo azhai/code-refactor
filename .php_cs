@@ -11,6 +11,9 @@ return PhpCsFixer\Config::create()
         '@PSR2' => true,
         '@PHP56Migration:risky' => true,
         '@PHPUnit57Migration:risky' => true,
+        'array_syntax' => ['syntax' => 'short'],
+        'declare_strict_types' => false,
+
     ])
     ->setFinder(PhpCsFixer\Finder::create()
         ->exclude('adminer.php')
@@ -31,5 +34,9 @@ fixerSets:
   - '@PHP56Migration:risky'
   - '@PHPUnit57Migration:risky'
 risky: true
+fixers:
+    array_syntax:
+        syntax: short
+    declare_strict_types: false
 
 */
